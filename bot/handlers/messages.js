@@ -4,7 +4,7 @@ import { movies, saveMovie } from '../movies.js';
 import { USER_ID, LOGGING_GROUP_ID, SUBSCRIPTIONSCHANNEL_ID } from '../../config/env.js';
 import { addPendingPayment } from './payments.js';
 import {
-  saveSubscriptions, subscriptions
+  saveSubscriptions, subscriptions, loadSubscriptions
 
 } from './subscriptions.js';
 
@@ -110,7 +110,8 @@ export const handleMessage = (msg) => {
         );
       }
 
-      // Optional: check for duplicate code
+      // Check for duplicate code
+      loadSubscriptions()
       const isDuplicate = subscriptions.some((sub) => sub.code === paymentCode);
       if (isDuplicate) {
         return bot.sendMessage(
@@ -134,7 +135,6 @@ export const handleMessage = (msg) => {
         expiryDateTime = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
       }
 
-      console.log(expiryDateTime)
 
       if (expiryDateTime) {
         expiryDate = expiryDateTime.toISOString().split('T')[0]; // 'YYYY-MM-DD'

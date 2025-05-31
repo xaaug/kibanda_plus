@@ -1,11 +1,27 @@
 import bot from '../botInstance.js';
 import { userStates, searchResults, newMovieStates } from '../states.js';
 import { movies, saveMovie } from '../movies.js';
+import { isSubscribed, loadSubscriptions } from './subscriptions.js';
+
 
 export const handleCallbackQuery = (callbackQuery) => {
   const msg = callbackQuery.message;
   const chatId = msg.chat.id;
   const data = callbackQuery.data;
+
+    loadSubscriptions(); // Ensure latest data from disk
+
+  const subscribed = isSubscribed(chatId);
+
+  if (!subscribed) {
+    return bot.sendMessage(
+      chatId,
+      `🔒 This content is for *subscribed* users only.\n\nTo unlock access:\n1. Use /packages to view options\n2. Use /subscribe to submit payment\n3. Wait for approval\n\nNeed help? Message Support`,
+      { parse_mode: 'Markdown' }
+    );
+  }
+
+
 
   if (data === 'search_movie') {
     userStates[chatId] = 'awaiting_movie_name';

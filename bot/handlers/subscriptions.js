@@ -25,8 +25,9 @@ export const writeAllSubscriptions = () => {
   fs.writeFileSync(subsFile, JSON.stringify({ subscriptions }, null, 2));
 };
 
-// Add a new subscription to file
+// Add a new subscription to file - Ensure existing subscriptions are loaded before modifying
 export const saveSubscriptions = (subscriptionData) => {
+  loadSubscriptions(); // load what's in file into memory
   subscriptions.push(subscriptionData);
   writeAllSubscriptions();
 };
@@ -34,13 +35,31 @@ export const saveSubscriptions = (subscriptionData) => {
 // Check if user is subscribed (based on userId and status)
 export const isSubscribed = (userId) => {
   const now = new Date();
-  return subscriptions.some(
-    (sub) =>
-      sub.userId === userId &&
-      sub.status === 'active' &&
-      new Date(sub.expiryDateTime) > now
-  );
+
+  loadSubscriptions()
+
+  return subscriptions.some((sub) => {
+    if (sub.userId !== userId || sub.status !== 'active') return false;
+
+    const expiryString = `${sub.expiryDate}T${sub.expiryTime}`;
+    const expiryDateTime = new Date(expiryString);
+
+    if (isNaN(expiryDateTime.getTime())) {
+      console.warn('⚠️ Invalid expiry datetime:', expiryString);
+      return false;
+    }
+
+
+    const status = expiryDateTime > now
+
+
+    return status;
+  });
 };
+
+
+
+
 
 // Deactivate expired subscriptions
 export const deactivateExpiredSubscriptions = () => {
