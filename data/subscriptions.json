@@ -1,0 +1,26 @@
+{
+  "subscriptions": [
+    {
+      "userId": 5870162908,
+      "username": "XNAug",
+      "package": "weekly",
+      "code": "QJD4KL9K3H",
+      "requestedDate": "2025-05-31",
+      "requestedHour": "22:05:37",
+      "expiryDate": "2025-06-07",
+      "expiryTime": "19:05:37",
+      "status": "active"
+    },
+    {
+      "userId": 5870162908,
+      "username": "XNAug",
+      "package": "weekly",
+      "code": "QJD4KL9K36",
+      "requestedDate": "2025-05-31",
+      "requestedHour": "22:15:43",
+      "expiryDate": "2025-06-07",
+      "expiryTime": "19:15:43",
+      "status": "active"
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-import bot from '../index.js';
+import bot from '../botInstance.js';
 import { userStates, searchResults, newMovieStates } from '../states.js';
 import { movies, saveMovie } from '../movies.js';
 

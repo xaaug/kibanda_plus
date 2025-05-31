@@ -1,13 +1,20 @@
-import bot from '../index.js';
+import bot from '../botInstance.js';
 import { userStates, newMovieStates, searchResults } from '../states.js';
 import { movies, saveMovie } from '../movies.js';
-import { USER_ID, LOGGING_GROUP_ID } from '../../config/env.js';
+import { USER_ID, LOGGING_GROUP_ID, SUBSCRIPTIONSCHANNEL_ID } from '../../config/env.js';
 import { addPendingPayment } from './payments.js';
+import {
+  saveSubscriptions, subscriptions
+
+} from './subscriptions.js';
 
 const adminId = Number(USER_ID);
 const loggingGroupId = Number(LOGGING_GROUP_ID);
 
-const knownCommands = ['/start', '/help', '/request', '/search', '/subscribe', '/status', '/movies', '/reload', '/adminhelp', '/approve', '/test'];
+bot.sendMessage(SUBSCRIPTIONSCHANNEL_ID, 'New subscription request.');
+
+
+const knownCommands = ['/start', '/help', '/request', '/search', '/subscribe', '/status', '/movies', '/reload', '/adminhelp', '/approve', '/test', '/packages'];
 
 export const handleMessage = (msg) => {
   const chatId = msg.chat.id;
@@ -72,22 +79,109 @@ export const handleMessage = (msg) => {
     }
 
     //Handle user subscription
-    if (userStates[chatId] === 'awaiting_payment_code') {
-      const code = msg.text.trim();
-      const username = msg.from.username || `ID_${msg.from.id}`;
+    if (userStates[chatId] === 'awaiting_subscription_input') {
+      const input = text.trim();
+      const [packageName, paymentCode] = input.split(/\s+/);
 
-      addPendingPayment({ chatId, username, code });
+      const validPackages = ['once', 'weekly', 'monthly'];
+      const mpesaCodeRegex = /^[A-Z0-9]{10,11}$/;
 
-      bot.sendMessage(chatId, `💬 Thanks! We’re verifying your code. You’ll get access shortly.`);
-      console.log(`🧾 New payment code received from ${username} (${chatId}): ${code}`);
-      bot.sendMessage(adminId, 'hello', {
-        parse_mode: 'Markdown',
-      });
+      if (!packageName || !paymentCode) {
+        return bot.sendMessage(
+          chatId,
+          '🚫 *Invalid format.*\n\nUse: `package payment_code`\nExample: `weekly QJD4KL9K3H`',
+          { parse_mode: 'Markdown' }
+        );
+      }
+
+      if (!validPackages.includes(packageName.toLowerCase())) {
+        return bot.sendMessage(
+          chatId,
+          `🚫 *Invalid package.*\n\nChoose from: \`${validPackages.join('`, `')}\``,
+          { parse_mode: 'Markdown' }
+        );
+      }
+
+      if (!mpesaCodeRegex.test(paymentCode)) {
+        return bot.sendMessage(
+          chatId,
+          '⚠️ *Invalid M-Pesa code format.*\n\nMake sure it is 10–11 characters and contains only capital letters and numbers.',
+          { parse_mode: 'Markdown' }
+        );
+      }
+
+      // Optional: check for duplicate code
+      const isDuplicate = subscriptions.some((sub) => sub.code === paymentCode);
+      if (isDuplicate) {
+        return bot.sendMessage(
+          chatId,
+          '⚠️ This M-Pesa code has already been submitted. If this is a mistake, contact support.',
+          { parse_mode: 'Markdown' }
+        );
+      }
+
+      const now = new Date();
+      const requestedDate = now.toISOString().split('T')[0]; // YYYY-MM-DD
+      const requestedHour = now.toTimeString().split(' ')[0]; // HH:MM:SS
+
+      let expiryDateTime = null;
+      let expiryDate = null;
+      let expiryTime = null;
+
+      if (packageName === 'weekly') {
+        expiryDateTime = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+      } else if (packageName === 'monthly') {
+        expiryDateTime = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+      }
+
+      console.log(expiryDateTime)
+
+      if (expiryDateTime) {
+        expiryDate = expiryDateTime.toISOString().split('T')[0]; // 'YYYY-MM-DD'
+        console.log(expiryDate)
+        expiryTime = expiryDateTime.toISOString().split('T')[1].split('.')[0]; // 'HH:mm:ss'
+        console.log(expiryTime)
+      }
+
+
+
+      const subscriptionData = {
+        userId: msg.from.id,
+        username: msg.from.first_name || null,
+        package: packageName.toLowerCase(),
+        code: paymentCode,
+        requestedDate,
+        requestedHour,
+        expiryDate,       // e.g. "2025-06-07"
+        expiryTime,       // e.g. "14:23:00"
+        status: 'pending',
+      };
+
+      // Save subscription (implement this function in your services)
+      saveSubscriptions(subscriptionData);
+
+      bot.sendMessage(chatId, '📥 *Request received.* Your payment is being processed.', { parse_mode: 'Markdown' });
+
+      const approvalMsg = `
+        *New Subscription Request*  
+        User: @${msg.from.username || msg.from.first_name || msg.from.id}  
+        ID: ${msg.from.id}  
+        Package: ${packageName}  
+        Code: \`${paymentCode}\`  
+        Date: ${requestedDate}  
+        Time: ${requestedHour}
+`;
+
+      try {
+        bot.sendMessage(SUBSCRIPTIONSCHANNEL_ID, approvalMsg, { parse_mode: 'Markdown' });
+      } catch (err) {
+        console.error('❌ Failed to send subscription approval message:', err);
+        // Fallback: notify admin
+        bot.sendMessage(adminId, `❌ Failed to send subscription notification to channel. Details:\n${approvalMsg}`, { parse_mode: 'Markdown' });
+      }
 
       delete userStates[chatId];
-      return;
     }
-
 
     // Handle movie search flow (user input for search query)
     if (userStates[chatId] === 'awaiting_movie_name') {

@@ -1,14 +1,16 @@
-import TelegramBot from 'node-telegram-bot-api';
-import { BOT_TOKEN } from '../config/env.js';
+import bot from './botInstance.js';
+import { loadSubscriptions, deactivateExpiredSubscriptions } from './handlers/subscriptions.js';
 
 import * as commands from './handlers/commands.js';
 import * as messages from './handlers/messages.js';
 import * as callbacks from './handlers/callbacks.js';
 
-const bot = new TelegramBot(BOT_TOKEN, { polling: true });
 
-// Export bot to be used in handlers
-export default bot;
+setInterval(() => {
+  loadSubscriptions();
+  deactivateExpiredSubscriptions();
+}, 60 * 60 * 1000); // every 1 hour
+
 
 // Register command handlers
 bot.onText(/\/start/, commands.start);
@@ -19,6 +21,8 @@ bot.onText(/\/reload/, commands.reload);
 bot.onText(/\/adminhelp/, commands.adminHelp);
 bot.onText(/\/movies/, commands.moviesList);
 bot.onText(/\/subscribe/, commands.subscribe);
+bot.onText(/\/packages/, commands.packages);
+bot.onText(/\/status/, commands.status);
 bot.onText(/\/approve @?(\w+)/, commands.approve)
 bot.onText(/\/test/, commands.test);
 

@@ -1,9 +1,10 @@
-import bot from '../index.js';
+import bot from '../botInstance.js';
 import { adminId } from '../config.js';
 import { loadMovies, movies } from '../movies.js';
 import { userStates } from '../states.js'; 
 import { getChatIdByUsername, removePendingPayment } from './payments.js';
-import { saveSubscriptions, subscriptions } from './subscriptions.js';
+import { loadSubscriptions, writeAllSubscriptions, subscriptions } from './subscriptions.js';
+
 
 export const start = (msg) => {
   const chatId = msg.chat.id;
@@ -38,6 +39,7 @@ export const help = (msg) => {
 /status – Know your level. VIP or not.
 /search – Find that fire flick.
 /request – Ask for something we don’t have. Hope included.
+/packages - to see the available plans from one-off passes to full-on monthly madness.
 
 Just type the name of the movie or show. If we have it, you’ll get it. If not... well, we’ll pretend we’re working on it.
   `;
@@ -154,39 +156,146 @@ export const moviesList = (msg) => {
 };
 
 export const subscribe = msg => {
-  const chatId = msg.chat.id;
-  const instructions = `
-💳 *Subscribe to Unlock Downloads*
+   const chatId = msg.chat.id;
 
-Send KES 99 to:
+  const prompt = `
+*Ready to get VIP access?* 🎬💸
 
-*Till Number:* 123456  
-*Account:* Your Telegram Username
+Available packages:
+- *Once* — One-time access for one content. - 1 KES
+- *Weekly* — Unlimited downloads for 7 days. - 100
+- *Monthly* — Unlimited downloads for 30 days. - 250
 
-Then reply here with your M-Pesa *transaction code*.`;
+ To subscribe, please follow these steps:
 
-  userStates[chatId] = 'awaiting_payment_code';
-  bot.sendMessage(chatId, instructions, { parse_mode: 'Markdown' });
+1. Go to  M-Pesa → Send Money
+   • Number: 0728507218
+   • Amount: Selected Package Price
+
+2. After payment, send your M-Pesa confirmation message using this format:
+
+Example of Code: QJD4KL9K3H
+
+\`[package] [your M-Pesa code]\`
+
+
+We’ll verify and activate your subscription shortly.
+
+✅ You’ll receive a confirmation once your access is active.
+
+`;
+
+  bot.sendMessage(chatId, prompt, { parse_mode: 'Markdown' });
+
+  userStates[chatId] = 'awaiting_subscription_input';
 }
 
 
 //Handle user subscription check request
-export const approve = (msg, match) => {
- const username = match[1];
-  const chatId = getChatIdByUsername(username);
 
-  if (!chatId) {
-    return bot.sendMessage(msg.chat.id, `❌ Couldn’t find @${username} in pending payments.`);
+
+export const approve = (msg, match) => {
+  const chatId = msg.chat.id;
+  const username = match[1]?.toLowerCase();
+
+  if (!username) {
+    return bot.sendMessage(chatId, "⚠️ Please provide a username.\nUsage: /approve @username");
   }
 
-  subscriptions[chatId] = true;
-  saveSubscriptions();
+  loadSubscriptions(); // refresh in-memory list
 
-  removePendingPayment(username);
+  const subIndex = subscriptions.findIndex(
+    (sub) => sub.username?.toLowerCase() === username && sub.status === 'pending'
+  );
 
-  bot.sendMessage(chatId, `✅ You’ve been subscribed! You can now download movies.`);
-  bot.sendMessage(msg.chat.id, `👍 Approved @${username}`);
+  if (subIndex === -1) {
+    return bot.sendMessage(chatId, `❌ No pending subscription found for @${username}`);
+  }
+
+  subscriptions[subIndex].status = 'active';
+
+  writeAllSubscriptions(); // save updated list
+
+  const userId = subscriptions[subIndex].userId;
+  const expiryDate = subscriptions[subIndex].expiryDate;
+  const expiryTime = subscriptions[subIndex].expiryTime;
+
+  bot.sendMessage(userId, `✅ Your subscription is now *active*! Valid until: ${expiryDate} ${expiryTime}`, {
+    parse_mode: 'Markdown',
+  });
+
+  bot.sendMessage(chatId, `👍 Subscription approved for @${username}`);
+};
+
+
+
+
+export const packages = msg => {
+  const chatId = msg.chat.id;
+  const text = `🎉 *Welcome to the Subscription Circus!*
+
+Here’s the *very exclusive* lineup of ways you can throw your money at us and get some content:
+
+💸 *Access Pass - 10*  
+Just wanna dip your toes? Pay 10 KES for a one-time download. It’s like buying a single slice of pizza, but for movies. *Mmm, delicious.*
+
+🔥 *Weekly Chaos Pass - 100*  
+Unlimited downloads for 7 days. Because who watches just one thing? Get your binge on without guilt (or paying every 10 minutes).
+
+🚀 *Monthly Mayhem Pass - 250*  
+All-you-can-download buffet for 30 days. Stream like a pro and flex on your friends who still pay per download.
+
+---
+
+*Choose your poison, pay the piper, and then hit /subscribe to send us your payment code. We’ll sort you out.*
+
+Pro tip: Paying in anything less than full enthusiasm might result in no downloads. No refunds. No excuses.
+`
+ bot.sendMessage(chatId, text, { parse_mode: 'Markdown' });
+
 }
+
+
+export const status = (msg) => {
+  const chatId = msg.chat.id;
+  const username = msg.from.username;
+
+  loadSubscriptions(); // Ensure we load the latest from disk
+
+  const userSubs = subscriptions.filter(sub => sub.userId === chatId);
+
+  if (userSubs.length === 0) {
+    return bot.sendMessage(chatId, '😕 You have no subscription records yet.\nUse /subscribe to get started.');
+  }
+
+  const latestSub = userSubs[userSubs.length - 1]; // Assume the most recent entry is last
+  const { status, package: pkg, expiryDate, code } = latestSub;
+
+  if (status === 'pending') {
+    return bot.sendMessage(chatId, `🕓 Your subscription is still *pending approval*.\n🔑 Code: \`${code}\``, {
+      parse_mode: 'Markdown',
+    });
+  }
+
+  if (status === 'active') {
+    return bot.sendMessage(
+      chatId,
+      `✅ You have an *active* subscription.\n\n📦 Package: *${pkg}*\n⏳ Expires: *${expiryDate}*`,
+      { parse_mode: 'Markdown' }
+    );
+  }
+
+  if (status === 'expired') {
+    return bot.sendMessage(
+      chatId,
+      `⚠️ Your subscription has *expired*.\n\n📦 Last Package: *${pkg}*\n🔁 Use /subscribe to renew.`,
+      { parse_mode: 'Markdown' }
+    );
+  }
+
+  // Catch unexpected status
+  return bot.sendMessage(chatId, '🤔 Something went wrong. Please contact support.');
+};
 
 export const test = msg => {
   const chatId = msg.chat.id
