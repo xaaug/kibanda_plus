@@ -5,6 +5,7 @@ import { userStates } from '../states.js';
 import { getChatIdByUsername, removePendingPayment } from './payments.js';
 import { loadSubscriptions, writeAllSubscriptions, subscriptions, isSubscribed } from './subscriptions.js';
 
+import { getDB } from '../../data/db.js';
 
 export const start = (msg) => {
   const chatId = msg.chat.id;
@@ -157,9 +158,11 @@ export const subscribe = (msg) => {
   const chatId = msg.chat.id;
   const userId = msg.from.id;
 
-  if (isSubscribed(userId)) {
-     return bot.sendMessage(chatId, "⚠️ You already have an active subscription. No need to pay again.");
-  }
+  console.log('USERID', userId)
+
+  // if (isSubscribed(userId)) {
+  //    return bot.sendMessage(chatId, "⚠️ You already have an active subscription. No need to pay again.");
+  // }
 
   const prompt = `
 *Ready to get VIP access?* 
@@ -195,7 +198,8 @@ We’ll verify and activate your subscription shortly.
 //Handle user subscription check request
 
 
-export const approve = (msg, match) => {
+
+export const approve = async (msg, match) => {
   const chatId = msg.chat.id;
   const username = match[1]?.toLowerCase();
 
@@ -203,30 +207,41 @@ export const approve = (msg, match) => {
     return bot.sendMessage(chatId, "⚠️ Please provide a username.\nUsage: /approve @username");
   }
 
-  loadSubscriptions(); // refresh in-memory list
+  try {
+    const db = await getDB();
 
-  const subIndex = subscriptions.findIndex(
-    (sub) => sub.username?.toLowerCase() === username && sub.status === 'pending'
-  );
+    // Find pending subs
+    const pendingSubs = await db.collection('subscriptions').find({
+      username: username,
+      status: 'pending',
+    }).toArray();
 
-  if (subIndex === -1) {
-    return bot.sendMessage(chatId, `❌ No pending subscription found for @${username}`);
+
+    if (pendingSubs.length === 0) {
+      return bot.sendMessage(chatId, `❌ No pending subscription found for @${username}`);
+    }
+
+    // Update status to active
+    await db.collection('subscriptions').updateMany(
+      { username: username, status: 'pending' },
+      { $set: { status: 'active' } }
+    );
+
+    // Notify users
+    for (const sub of pendingSubs) {
+      await bot.sendMessage(sub.userId, `✅ Your subscription is now *active*! Valid until: ${sub.expiryDate} ${sub.expiryTime}`, {
+        parse_mode: 'Markdown',
+      });
+    }
+
+    bot.sendMessage(chatId, `👍 Approved ${pendingSubs.length} subscription(s) for @${username}`);
+
+  } catch (err) {
+    console.error('Approve error:', err);
+    bot.sendMessage(chatId, '❌ Error approving subscriptions. Try again later.');
   }
-
-  subscriptions[subIndex].status = 'active';
-
-  writeAllSubscriptions(); // save updated list
-
-  const userId = subscriptions[subIndex].userId;
-  const expiryDate = subscriptions[subIndex].expiryDate;
-  const expiryTime = subscriptions[subIndex].expiryTime;
-
-  bot.sendMessage(userId, `✅ Your subscription is now *active*! Valid until: ${expiryDate} ${expiryTime}`, {
-    parse_mode: 'Markdown',
-  });
-
-  bot.sendMessage(chatId, `👍 Subscription approved for @${username}`);
 };
+
 
 
 

@@ -1,23 +1,22 @@
 import fs from 'fs';
+import bot from '../botInstance.js';
+
+import { getDB } from '../../data/db.js';
 
 const subsFile = './data/subscriptions.json';
 export const subscriptions = [];
 
 // Load subscriptions from file into memory
-export const loadSubscriptions = () => {
+export const loadSubscriptions = async () => {
   try {
-    const raw = fs.readFileSync(subsFile, 'utf-8');
-    const data = JSON.parse(raw);
-    subscriptions.length = 0; // Clear current array
-    subscriptions.push(...data.subscriptions);
-    return subscriptions;  // return loaded subscriptions
-  } catch {
-    console.log('🗃️ No subscriptions file found. Starting with empty list.');
-    subscriptions.length = 0;  // ensure empty array
-    return subscriptions; // return empty array
+    const db = await getDB();
+    const subscriptions = await db.collection('subscriptions').find({}).toArray();
+    return subscriptions;  // return loaded subscriptions from DB
+  } catch (err) {
+    console.error('Failed to load subscriptions from DB:', err);
+    return [];
   }
 };
-
 
 
 // Save all current in-memory subscriptions to file
@@ -26,59 +25,81 @@ export const writeAllSubscriptions = () => {
 };
 
 // Add a new subscription to file - Ensure existing subscriptions are loaded before modifying
-export const saveSubscriptions = (subscriptionData) => {
-  loadSubscriptions(); // load what's in file into memory
-  subscriptions.push(subscriptionData);
-  writeAllSubscriptions();
+export const saveSubscriptions = async (subscriptionData) => {
+  try {
+    const db = await getDB();
+    const result = await db.collection('subscriptions').insertOne(subscriptionData);
+    console.log('✅ Subscription saved:', result.insertedId);
+  } catch (err) {
+    console.error('❌ Failed to save subscription:', err);
+  }
 };
-
 // Check if user is subscribed (based on userId and status)
-export const isSubscribed = (userId) => {
+export const isSubscribed = async (userId) => {
+  const db = await getDB();
   const now = new Date();
 
-  loadSubscriptions()
-
-  return subscriptions.some((sub) => {
-    if (sub.userId !== userId || sub.status !== 'active') return false;
-
-    const expiryString = `${sub.expiryDate}T${sub.expiryTime}`;
-    const expiryDateTime = new Date(expiryString);
-
-    if (isNaN(expiryDateTime.getTime())) {
-      console.warn('⚠️ Invalid expiry datetime:', expiryString);
-      return false;
-    }
-
-
-    const status = expiryDateTime > now
-
-
-    return status;
+  const userSub = await db.collection('subscriptions').findOne({
+    userId,
+    status: 'active',
   });
-};
 
+
+  if (!userSub) return false;
+
+  const expiryString = `${userSub.expiryDate}T${userSub.expiryTime}`;
+  const expiryDateTime = new Date(expiryString);
+
+  if (isNaN(expiryDateTime.getTime())) {
+    console.warn('⚠️ Invalid expiry datetime:', expiryString);
+    return false;
+  }
+
+  const status = expiryDateTime > now
+
+  return status;
+};
 
 
 
 
 // Deactivate expired subscriptions
-export const deactivateExpiredSubscriptions = () => {
+export const deactivateExpiredSubscriptions = async () => {
+  const db = await getDB();
   const now = new Date();
-  let changed = false;
 
-  for (const sub of subscriptions) {
-    if (sub.status === 'active' && new Date(sub.expiryDateTime) < now) {
-      sub.status = 'expired';
-      changed = true;
+  const expiredSubs = await db.collection('subscriptions').find({
+    status: 'active',
+  }).toArray();
+
+  const updates = [];
+
+  for (const sub of expiredSubs) {
+    const expiryString = `${sub.expiryDate}T${sub.expiryTime}`;
+    const expiryDateTime = new Date(expiryString);
+
+    if (isNaN(expiryDateTime.getTime())) continue;
+
+    if (expiryDateTime < now) {
+      updates.push(sub._id);
 
       // Notify the user
-      bot.sendMessage(sub.userId, `⚠️ Your subscription has expired. Renew to continue access.`);
+      try {
+        await bot.sendMessage(sub.userId, `⚠️ Your subscription has expired. Renew to continue access.`);
+      } catch (err) {
+        console.warn(`Could not notify user ${sub.userId}:`, err.message);
+      }
     }
   }
 
-  if (changed) {
-    writeAllSubscriptions(); // Save only if something changed
-    console.log('⏳ Some subscriptions have expired and were deactivated.');
+  if (updates.length > 0) {
+    await db.collection('subscriptions').updateMany(
+      { _id: { $in: updates } },
+      { $set: { status: 'expired' } }
+    );
+
+    console.log(`⏳ ${updates.length} subscriptions expired and were deactivated.`);
+  } else {
+    console.log('✅ No expired subscriptions to deactivate.');
   }
 };
-

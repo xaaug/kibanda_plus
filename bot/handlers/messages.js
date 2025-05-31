@@ -8,6 +8,7 @@ import {
 
 } from './subscriptions.js';
 
+
 const adminId = Number(USER_ID);
 const loggingGroupId = Number(LOGGING_GROUP_ID);
 
@@ -147,7 +148,7 @@ export const handleMessage = (msg) => {
 
       const subscriptionData = {
         userId: msg.from.id,
-        username: msg.from.first_name || null,
+        username: msg.from.first_name?.toLowerCase() || null,
         package: packageName.toLowerCase(),
         code: paymentCode,
         requestedDate,
@@ -156,6 +157,7 @@ export const handleMessage = (msg) => {
         expiryTime,       // e.g. "14:23:00"
         status: 'pending',
       };
+
 
       // Save subscription (implement this function in your services)
       saveSubscriptions(subscriptionData);

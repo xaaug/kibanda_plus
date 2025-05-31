@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import bot from './botInstance.js';
 import { loadSubscriptions, deactivateExpiredSubscriptions } from './handlers/subscriptions.js';
 
