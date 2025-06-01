@@ -21,8 +21,8 @@ setInterval(() => {
 bot.onText(/\/start/, commands.start);
 bot.onText(/\/help/, commands.help);
 bot.onText(/\/search/, commands.search);
-bot.onText(/\/request /, commands.request);
 bot.onText(/\/reload/, commands.reload);
+bot.onText(/\/request/, commands.request);
 bot.onText(/\/adminhelp/, commands.adminHelp);
 bot.onText(/\/movies/, commands.moviesList);
 bot.onText(/\/subscribe/, commands.subscribe);

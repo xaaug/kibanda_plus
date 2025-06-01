@@ -6,6 +6,7 @@ import { getChatIdByUsername, removePendingPayment } from './payments.js';
 import { loadSubscriptions, writeAllSubscriptions, subscriptions, isSubscribed } from './subscriptions.js';
 
 import { getDB } from '../../data/db.js';
+import { REQUEST_GROUP_ID } from '../../config/env.js';
 
 let movies = [];
 
@@ -91,13 +92,14 @@ export const search = async (msg) => {
 
 export const request = (msg) => {
   const chatId = msg.chat.id;
-  console.log(` User ${msg.from.username || msg.from.id} requested content in chat ${chatId}`);
 
+  console.log("New request")
+  
+  bot.sendMessage(
+    chatId,
+    '🎬 What movie or show do you want? Drop the name below and we’ll throw it into the content universe.'
+  );
   userStates[chatId] = 'awaiting_request_input';
-
-  const prompt = `🎤 *What movie or show are you looking for?*\n\nType the name, and we’ll pretend to be shocked it’s not already in our catalog.`;
-
-  bot.sendMessage(chatId, prompt, { parse_mode: 'Markdown' });
 };
 
 export const processRequestInput = (msg) => {
@@ -116,7 +118,7 @@ export const processRequestInput = (msg) => {
   );
 
   bot.sendMessage(
-    adminId,
+    REQUEST_GROUP_ID,
     `*New content request:*\nUser: @${username}\nMovie: ${query}`,
     { parse_mode: 'Markdown' }
   );
@@ -189,7 +191,6 @@ export const subscribe = async (msg) => {
 
   
   const status =   await isSubscribed(userId);
-  console.log('Subscription', status)
 
 
   if (status) {
@@ -227,7 +228,6 @@ We’ll verify and activate your subscription shortly.
 };
 
 
-//Handle user subscription check request
 
 
 

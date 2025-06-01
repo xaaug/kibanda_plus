@@ -9,6 +9,8 @@ import {
 } from './subscriptions.js';
 
 
+import { processRequestInput } from './commands.js';
+
 const adminId = Number(USER_ID);
 const loggingGroupId = Number(LOGGING_GROUP_ID);
 
@@ -72,13 +74,13 @@ export const handleMessage = async (msg) => {
       return;
     }
 
-
-
     //Handle user content requests
-    if (userStates[chatId] === 'awaiting_request_input') {
-      processRequestInput(msg);
-      return
-    }
+
+  if (userStates[chatId] === 'awaiting_request_input') {
+    console.log("Processing request input")
+    processRequestInput(msg);
+    return;
+  }
 
     //Handle user subscription
     if (userStates[chatId] === 'awaiting_subscription_input') {

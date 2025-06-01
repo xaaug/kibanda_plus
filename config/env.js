@@ -12,3 +12,4 @@ export const USER_ID = process.env.USER_ID;
 export const LOGGING_GROUP_ID = process.env.LOGGING_GROUP_ID;
 export const SUBSCRIPTIONSCHANNEL_ID = process.env.SUBSCRIPTIONSCHANNEL_ID;
 export const MONGODB_URI = process.env.MONGODB_URI;
+export const REQUEST_GROUP_ID = process.env.REQUEST_GROUP_ID;
