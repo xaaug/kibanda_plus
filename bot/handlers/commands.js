@@ -6,12 +6,12 @@ import { getChatIdByUsername, removePendingPayment } from './payments.js';
 import { loadSubscriptions, writeAllSubscriptions, subscriptions, isSubscribed } from './subscriptions.js';
 
 import { getDB } from '../../data/db.js';
+import { REQUEST_GROUP_ID } from '../../config/env.js';
 
 let movies = [];
 
 getMovies().then((loadedMovies) => {
   movies = loadedMovies;
-  console.log('Movies gotten:', movies.length);
 });
 
 
@@ -56,8 +56,22 @@ Just type the name of the movie or show. If we have it, you’ll get it. If not.
   bot.sendMessage(chatId, text, { parse_mode: 'Markdown' });
 };
 
-export const search = (msg) => {
+export const search = async (msg) => {
   const chatId = msg.chat.id;
+
+  await loadSubscriptions(); // Ensure latest data from disk
+
+  const subscribed = await isSubscribed(chatId);
+  console.log('subscription', subscribed)
+
+  if (!subscribed) {
+    return bot.sendMessage(
+      chatId,
+      `🔒 This content is for *subscribed* users only.\n\nTo unlock access:\n1. Use /packages to view options\n2. Use /subscribe to submit payment\n3. Use /statut to view your subscription status\n4. Wait for approval\n\nNeed help? Message Support`,
+      { parse_mode: 'Markdown' }
+    );
+  }
+
 
   const opts = {
     reply_markup: {
@@ -70,23 +84,27 @@ export const search = (msg) => {
     },
   };
 
+  await loadMovies()
+
   bot.sendMessage(chatId, 'What do you want to search for?', opts);
 };
 
 export const request = (msg) => {
   const chatId = msg.chat.id;
-  console.log(` User ${msg.from.username || msg.from.id} requested content in chat ${chatId}`);
 
+  console.log("New request")
+  
+  bot.sendMessage(
+    chatId,
+    '🎬 What movie or show do you want? Drop the name below and we’ll throw it into the content universe.'
+  );
   userStates[chatId] = 'awaiting_request_input';
-
-  const prompt = `🎤 *What movie or show are you looking for?*\n\nType the name, and we’ll pretend to be shocked it’s not already in our catalog.`;
-
-  bot.sendMessage(chatId, prompt, { parse_mode: 'Markdown' });
 };
 
 export const processRequestInput = (msg) => {
   const chatId = msg.chat.id;
-  const username = msg.from.username || `ID: ${msg.from.id}`;
+  const username = msg.from.first_name || `ID: ${msg.from.id}`;
+  const userId = msg.from.id
   const query = msg.text.trim();
 
   if (!query) {
@@ -100,8 +118,8 @@ export const processRequestInput = (msg) => {
   );
 
   bot.sendMessage(
-    adminId,
-    `*New content request:*\nUser: @${username}\nMovie: ${query}`,
+    REQUEST_GROUP_ID,
+    `*New content request:*\nUser: @${username}\nID: ${userId}\nMovie: ${query}`,
     { parse_mode: 'Markdown' }
   );
 
@@ -173,7 +191,6 @@ export const subscribe = async (msg) => {
 
   
   const status =   await isSubscribed(userId);
-  console.log('Subscription', status)
 
 
   if (status) {
@@ -211,7 +228,6 @@ We’ll verify and activate your subscription shortly.
 };
 
 
-//Handle user subscription check request
 
 
 

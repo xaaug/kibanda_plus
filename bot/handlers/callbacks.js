@@ -1,29 +1,32 @@
 import bot from '../botInstance.js';
 import { userStates, searchResults, newMovieStates } from '../states.js';
-import {  saveMovie } from '../movies.js';
+import { saveMovie, loadMovies } from '../movies.js';
 import { isSubscribed, loadSubscriptions } from './subscriptions.js';
 
 
-export const handleCallbackQuery = (callbackQuery) => {
+export const handleCallbackQuery = async (callbackQuery) => {
   const msg = callbackQuery.message;
   const chatId = msg.chat.id;
   const data = callbackQuery.data;
 
-    loadSubscriptions(); // Ensure latest data from disk
-
-  const subscribed = isSubscribed(chatId);
-
-  if (!subscribed) {
-    return bot.sendMessage(
-      chatId,
-      `🔒 This content is for *subscribed* users only.\n\nTo unlock access:\n1. Use /packages to view options\n2. Use /subscribe to submit payment\n3. Wait for approval\n\nNeed help? Message Support`,
-      { parse_mode: 'Markdown' }
-    );
-  }
-
-
 
   if (data === 'search_movie') {
+
+    await loadSubscriptions(); // Ensure latest data from disk
+
+    
+    const subscribed = await isSubscribed(chatId);
+    console.log('Subscription', subscribed)
+
+    if (!subscribed) {
+      return bot.sendMessage(
+        chatId,
+        `🔒 This content is for *subscribed* users only.\n\nTo unlock access:\n1. Use /packages to view options\n2. Use /subscribe to submit payment\n3. Wait for approval\n\nNeed help? Message Support`,
+        { parse_mode: 'Markdown' }
+      );
+    }
+
+
     userStates[chatId] = 'awaiting_movie_name';
     bot.sendMessage(chatId, '🔥 Type the name of the movie you want to find:');
   } else if (data === 'search_series') {
@@ -97,7 +100,7 @@ export const handleCallbackQuery = (callbackQuery) => {
       loadMovies().then((loadedMovies) => {
         console.log('Movies loaded:', loadedMovies.length);
       });
-      
+
     } else {
       bot.sendMessage(chatId, `⚠️ This movie already exists in the list.`);
       console.log(`[⚠️ Duplicate movie] ${movie.title} (${movie.year})`);
@@ -107,7 +110,7 @@ export const handleCallbackQuery = (callbackQuery) => {
     return;
   }
 
-   // Unknown callback data fallback
+  // Unknown callback data fallback
   // bot.answerCallbackQuery(callbackQuery.id, { text: '⚠️ I don’t know what that means. Try again.' }).catch(console.error);
 
   bot.answerCallbackQuery(callbackQuery.id).catch(console.error);
