@@ -167,13 +167,16 @@ export const moviesList = async (msg) => {
 };
 
 
-export const subscribe = (msg) => {
+export const subscribe = async (msg) => {
   const chatId = msg.chat.id;
   const userId = msg.from.id;
 
-  console.log('USERID', userId)
+  
+  const status =   await isSubscribed(userId);
+  console.log('Subscription', status)
 
-  if (isSubscribed(userId)) {
+
+  if (status) {
      return bot.sendMessage(chatId, "⚠️ You already have an active subscription. No need to pay again.");
   }
 
@@ -285,13 +288,13 @@ Pro tip: Paying in anything less than full enthusiasm might result in no downloa
 }
 
 
-export const status = (msg) => {
+export const status = async (msg) => {
   const chatId = msg.chat.id;
   const username = msg.from.username;
 
-  loadSubscriptions(); // Ensure we load the latest from disk
+  const allSubscriptions = await loadSubscriptions(); // Ensure we load the latest from disk
 
-  const userSubs = subscriptions.filter(sub => sub.userId === chatId);
+  const userSubs = allSubscriptions.filter(sub => sub.userId === chatId);
 
   if (userSubs.length === 0) {
     return bot.sendMessage(chatId, ' You have no subscription records yet.\nUse /subscribe to get started.');
