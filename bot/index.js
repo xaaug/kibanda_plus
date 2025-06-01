@@ -15,6 +15,8 @@ setInterval(() => {
 }, 60 * 60 * 1000); // every 1 hour
 
 
+
+
 // Register command handlers
 bot.onText(/\/start/, commands.start);
 bot.onText(/\/help/, commands.help);

@@ -1,6 +1,6 @@
 import bot from '../botInstance.js';
 import { userStates, searchResults, newMovieStates } from '../states.js';
-import { movies, saveMovie } from '../movies.js';
+import {  saveMovie } from '../movies.js';
 import { isSubscribed, loadSubscriptions } from './subscriptions.js';
 
 
@@ -94,6 +94,10 @@ export const handleCallbackQuery = (callbackQuery) => {
         parse_mode: 'Markdown'
       });
       console.log(`[✅ Movie saved] ${movie.title} (${movie.year}) genre: ${movie.genre} resolution: ${movie.resolution}`);
+      loadMovies().then((loadedMovies) => {
+        console.log('Movies loaded:', loadedMovies.length);
+      });
+      
     } else {
       bot.sendMessage(chatId, `⚠️ This movie already exists in the list.`);
       console.log(`[⚠️ Duplicate movie] ${movie.title} (${movie.year})`);

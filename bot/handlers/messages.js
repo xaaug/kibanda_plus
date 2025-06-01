@@ -1,6 +1,6 @@
 import bot from '../botInstance.js';
 import { userStates, newMovieStates, searchResults } from '../states.js';
-import { movies, saveMovie } from '../movies.js';
+import {  loadMovies, getMovies } from '../movies.js';
 import { USER_ID, LOGGING_GROUP_ID, SUBSCRIPTIONSCHANNEL_ID } from '../../config/env.js';
 import { addPendingPayment } from './payments.js';
 import {
@@ -11,6 +11,19 @@ import {
 
 const adminId = Number(USER_ID);
 const loggingGroupId = Number(LOGGING_GROUP_ID);
+
+ // Load movies from DB 
+let movies = [];
+
+loadMovies().then((loadedMovies) => {
+  console.log('Movies loaded:', movies.length);
+});
+
+getMovies().then((loadedMovies) => {
+  movies = loadedMovies;
+  console.log('Movies gotten:', movies.length); 
+});
+
 
 bot.sendMessage(SUBSCRIPTIONSCHANNEL_ID, 'New subscription request.');
 
@@ -32,11 +45,10 @@ export const handleMessage = (msg) => {
       if (!knownCommands.includes(command)) {
         return bot.sendMessage(chatId, `🚫 Nice try, but "${command}" ain't a command I know. Try /help for the real deal.`);
       }
-      // Known commands are handled elsewhere, so just return here
       return;
     }
 
-    // Admin commands available only to admin user
+    // Admin commands available 
     if (chatId === adminId) {
       if (text === '/reload') {
         loadMovies(); // Make sure you have this function defined somewhere
@@ -52,8 +64,9 @@ export const handleMessage = (msg) => {
       }
     }
 
-    // Public command: /movies to list movies
+    // /movies to list movies
     if (text === '/movies') {
+      console.log("movies", movies)
       if (movies.length === 0) {
         return bot.sendMessage(chatId, 'No movies loaded currently.');
       }
@@ -63,7 +76,7 @@ export const handleMessage = (msg) => {
       for (let i = 0; i < movies.length; i += chunkSize) {
         const chunk = movies.slice(i, i + chunkSize);
         const message = chunk.map(m =>
-          `🎬 *${m.title}* (${m.year}) — _${m.genre}_ | 📺 ${m.resolution || 'N/A'}`
+          ` *${m.title}* (${m.year}) — _${m.genre}_ |  ${m.resolution || 'N/A'}`
         ).join('\n');
 
         bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
@@ -153,13 +166,13 @@ export const handleMessage = (msg) => {
         code: paymentCode,
         requestedDate,
         requestedHour,
-        expiryDate,       // e.g. "2025-06-07"
-        expiryTime,       // e.g. "14:23:00"
+        expiryDate,       //  "2025-06-07"
+        expiryTime,       //  "14:23:00"
         status: 'pending',
       };
 
 
-      // Save subscription (implement this function in your services)
+      // Save subscription 
       saveSubscriptions(subscriptionData);
 
       bot.sendMessage(chatId, '📥 *Request received.* Your payment is being processed.', { parse_mode: 'Markdown' });
@@ -211,7 +224,7 @@ export const handleMessage = (msg) => {
       return;
     }
 
-    // Placeholder for series search (you can expand this later)
+    // Placeholder for series search 
     if (userStates[chatId] === 'awaiting_series_name') {
       userStates[chatId] = null;
       bot.sendMessage(chatId, `Searching for series: "${text}" ...`);
@@ -253,7 +266,6 @@ export const handleMessage = (msg) => {
         return;
       }
 
-      // Further steps like genre and resolution are usually handled in callback_query handlers
       return;
     }
 

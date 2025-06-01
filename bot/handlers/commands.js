@@ -1,11 +1,20 @@
 import bot from '../botInstance.js';
 import { adminId } from '../config.js';
-import { loadMovies, movies } from '../movies.js';
+import { loadMovies , getMovies} from '../movies.js';
 import { userStates } from '../states.js'; 
 import { getChatIdByUsername, removePendingPayment } from './payments.js';
 import { loadSubscriptions, writeAllSubscriptions, subscriptions, isSubscribed } from './subscriptions.js';
 
 import { getDB } from '../../data/db.js';
+
+let movies = [];
+
+getMovies().then((loadedMovies) => {
+  movies = loadedMovies;
+  console.log('Movies gotten:', movies.length);
+});
+
+
 
 export const start = (msg) => {
   const chatId = msg.chat.id;
@@ -100,7 +109,7 @@ export const processRequestInput = (msg) => {
 };
 
 
-export const reload = (msg) => {
+export const reload = async (msg) => {
   const chatId = msg.chat.id;
 
   if (msg.from.id !== adminId) {
@@ -108,7 +117,7 @@ export const reload = (msg) => {
   }
 
   try {
-    loadMovies();
+    const movies = await loadMovies();
     bot.sendMessage(chatId, `✅ Reloaded ${movies.length} movies from file.`);
     console.log('✅ Movies reloaded from disk.');
   } catch (err) {
@@ -135,14 +144,16 @@ export const adminHelp = (msg) => {
   bot.sendMessage(chatId, text, { parse_mode: 'Markdown' });
 };
 
-export const moviesList = (msg) => {
+export const moviesList = async (msg) => {
   const chatId = msg.chat.id;
 
+  const movies = await loadMovies()
+    console.log('Movies loaded:', movies.length);
   if (movies.length === 0) {
     return bot.sendMessage(chatId, 'No movies loaded currently.');
   }
 
-  const chunkSize = 10;
+  const chunkSize = 20;
   for (let i = 0; i < movies.length; i += chunkSize) {
     const chunk = movies.slice(i, i + chunkSize);
     const message = chunk
@@ -154,15 +165,17 @@ export const moviesList = (msg) => {
     bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
   }
 };
+
+
 export const subscribe = (msg) => {
   const chatId = msg.chat.id;
   const userId = msg.from.id;
 
   console.log('USERID', userId)
 
-  // if (isSubscribed(userId)) {
-  //    return bot.sendMessage(chatId, "⚠️ You already have an active subscription. No need to pay again.");
-  // }
+  if (isSubscribed(userId)) {
+     return bot.sendMessage(chatId, "⚠️ You already have an active subscription. No need to pay again.");
+  }
 
   const prompt = `
 *Ready to get VIP access?* 

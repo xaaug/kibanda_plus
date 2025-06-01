@@ -1,49 +1,74 @@
-import fs from 'fs';
-import path from 'path';
+import { getDB } from "../data/db.js";
+import { ObjectId } from "mongodb";
 
-const moviesFile = path.join('./data/movies.json');
-
-
-const MOVIES_PATH = path.join('./data/movies.json');
-
-export let movies = [];
-
-try {
-  const data = fs.readFileSync(MOVIES_PATH, 'utf8');
-  movies = JSON.parse(data);
-  console.log(`🔥 Loaded ${movies.length} movies from file.`);
-} catch (err) {
-  console.error('❌ Failed to load movie list:', err);
+export async function loadMovies() {
+  const db = await getDB();
+  const movies = await db.collection('movies').find({}).toArray();
+  // console.log(movies)
+  return movies;
 }
 
-export const saveMovie = (movie) => {
-  const currentMovies = loadMovies();
-  const exists = currentMovies.find(m =>
-    m.file_id === movie.file_id ||
-    (m.title.toLowerCase() === movie.title.toLowerCase() && m.year === movie.year)
-  );
+export async function saveMovie(movie) {
+  const db = await getDB();
+
+  // Check if movie already exists by file_id or title+year combo
+  const exists = await db.collection('movies').findOne({
+    $or: [
+      { file_id: movie.file_id },
+      { title: movie.title.toLowerCase(), year: movie.year }
+    ]
+  });
+
   if (exists) return false;
 
-  currentMovies.push(movie);
-  fs.writeFileSync(MOVIES_PATH, JSON.stringify(currentMovies, null, 2));
-  movies = currentMovies; // update global
+  // Add initial popularity and timestamps
+  const newMovie = {
+    ...movie,
+    popularity: 0,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  };
+
+  await db.collection('movies').insertOne(newMovie);
+ 
   return true;
-};
+}
 
+export async function getMovies() {
+  const db = await getDB();
+  return db.collection('movies').find({}).toArray();
+}
 
-export function loadMovies() {
-  try {
-    const data = fs.readFileSync(moviesFile, 'utf8');
-    const movies = JSON.parse(data);
-    if (!Array.isArray(movies)) {
-      console.warn('[loadMovies] JSON is not an array, resetting to []');
-      return [];
-    }
-    return movies;
-  } catch (err) {
-    if (err.code === 'ENOENT') {
-      console.log('[loadMovies] File not found, returning empty array');
-      return [];
-    }
-    throw err;
-  }}
+export async function incrementPopularity(movieId) {
+  const db = await getDB();
+
+  const result = await db.collection('movies').findOneAndUpdate(
+    { _id: new ObjectId(movieId) },
+    { $inc: { popularity: 1 }, $set: { updatedAt: new Date() } },
+    { returnDocument: 'after' }
+  );
+
+  return result.value;
+}
+
+export async function searchMovies(query) {
+  const db = await getDB();
+  const regex = new RegExp(query, 'i');
+
+  // Find matching movies
+  const movies = await db.collection('movies').find({
+    $or: [
+      { title: regex },
+      { genre: regex }
+    ]
+  }).toArray();
+
+  // Increment popularity for all matches (async in parallel)
+  await Promise.all(
+    movies.map(movie =>
+      incrementPopularity(movie._id)
+    )
+  );
+
+  return movies;
+}
