@@ -3,7 +3,6 @@ import { BOT_TOKEN } from '../config/env.js';
 // import { MONGODB_URI } from '../config/env.js';
 
 
-const uri = 'mongodb+srv://user1:user1234@cluster0.8j17ibf.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0'
 
 // const uri = MONGODB_URI
 
