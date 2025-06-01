@@ -9,10 +9,10 @@ import * as messages from './handlers/messages.js';
 import * as callbacks from './handlers/callbacks.js';
 
 
-setInterval(() => {
-  loadSubscriptions();
-  deactivateExpiredSubscriptions();
-}, 60 * 60 * 1000); // every 1 hour
+setInterval(async () => {
+  await loadSubscriptions();
+  await deactivateExpiredSubscriptions();
+}, 60 * 60 * 1000); // every 1 hour 60 * 60 * 1000
 
 
 
@@ -21,7 +21,7 @@ setInterval(() => {
 bot.onText(/\/start/, commands.start);
 bot.onText(/\/help/, commands.help);
 bot.onText(/\/search/, commands.search);
-bot.onText(/\/reload/, commands.reload);
+bot.onText(/\/reload/, commands.reload);  
 bot.onText(/\/request/, commands.request);
 bot.onText(/\/adminhelp/, commands.adminHelp);
 bot.onText(/\/movies/, commands.moviesList);

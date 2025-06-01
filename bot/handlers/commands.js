@@ -12,7 +12,6 @@ let movies = [];
 
 getMovies().then((loadedMovies) => {
   movies = loadedMovies;
-  console.log('Movies gotten:', movies.length);
 });
 
 
@@ -68,7 +67,7 @@ export const search = async (msg) => {
   if (!subscribed) {
     return bot.sendMessage(
       chatId,
-      `🔒 This content is for *subscribed* users only.\n\nTo unlock access:\n1. Use /packages to view options\n2. Use /subscribe to submit payment\n3. Wait for approval\n\nNeed help? Message Support`,
+      `🔒 This content is for *subscribed* users only.\n\nTo unlock access:\n1. Use /packages to view options\n2. Use /subscribe to submit payment\n3. Use /statut to view your subscription status\n4. Wait for approval\n\nNeed help? Message Support`,
       { parse_mode: 'Markdown' }
     );
   }
@@ -104,7 +103,8 @@ export const request = (msg) => {
 
 export const processRequestInput = (msg) => {
   const chatId = msg.chat.id;
-  const username = msg.from.username || `ID: ${msg.from.id}`;
+  const username = msg.from.first_name || `ID: ${msg.from.id}`;
+  const userId = msg.from.id
   const query = msg.text.trim();
 
   if (!query) {
@@ -119,7 +119,7 @@ export const processRequestInput = (msg) => {
 
   bot.sendMessage(
     REQUEST_GROUP_ID,
-    `*New content request:*\nUser: @${username}\nMovie: ${query}`,
+    `*New content request:*\nUser: @${username}\nID: ${userId}\nMovie: ${query}`,
     { parse_mode: 'Markdown' }
   );
 
