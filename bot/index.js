@@ -15,10 +15,6 @@ setInterval(async () => {
 }, 60 * 60 * 1000); // every 1 hour 60 * 60 * 1000
 
 
-import * as commands from "./handlers/commands.js";
-import * as messages from "./handlers/messages.js";
-import * as callbacks from "./handlers/callbacks.js";
-
 setInterval(
   () => {
     loadSubscriptions();
