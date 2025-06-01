@@ -1,6 +1,6 @@
 import bot from '../botInstance.js';
 import { userStates, searchResults, newMovieStates } from '../states.js';
-import {  saveMovie } from '../movies.js';
+import {  saveMovie, loadMovies } from '../movies.js';
 import { isSubscribed, loadSubscriptions } from './subscriptions.js';
 
 

@@ -56,7 +56,7 @@ Just type the name of the movie or show. If we have it, you’ll get it. If not.
   bot.sendMessage(chatId, text, { parse_mode: 'Markdown' });
 };
 
-export const search = (msg) => {
+export const search = async (msg) => {
   const chatId = msg.chat.id;
 
   const opts = {
@@ -69,6 +69,8 @@ export const search = (msg) => {
       ],
     },
   };
+
+  await loadMovies()
 
   bot.sendMessage(chatId, 'What do you want to search for?', opts);
 };
