@@ -13,22 +13,11 @@ import {
   loadSubscriptions,
 } from "./subscriptions.js";
 
+import { processRequestInput } from './commands.js';
+
 const adminId = Number(USER_ID);
 const loggingGroupId = Number(LOGGING_GROUP_ID);
 
-// Load movies from DB
-let movies = [];
-
-loadMovies().then((loadedMovies) => {
-  console.log("Movies loaded:", movies.length);
-});
-
-getMovies().then((loadedMovies) => {
-  movies = loadedMovies;
-  console.log("Movies gotten:", movies.length);
-});
-
-bot.sendMessage(SUBSCRIPTIONSCHANNEL_ID, "New subscription request.");
 
 const knownCommands = [
   "/start",
@@ -45,7 +34,7 @@ const knownCommands = [
   "/packages",
 ];
 
-export const handleMessage = (msg) => {
+export const handleMessage = async (msg) => {
   const chatId = msg.chat.id;
   const text = msg.text;
   const sender = msg.from?.username || msg.from?.first_name || "Unknown";
@@ -110,10 +99,12 @@ export const handleMessage = (msg) => {
     }
 
     //Handle user content requests
-    if (userStates[chatId] === "awaiting_request_input") {
-      processRequestInput(msg);
-      return;
-    }
+
+  if (userStates[chatId] === 'awaiting_request_input') {
+    console.log("Processing request input")
+    processRequestInput(msg);
+    return;
+  }
 
     //Handle user subscription
     if (userStates[chatId] === "awaiting_subscription_input") {
@@ -170,6 +161,8 @@ export const handleMessage = (msg) => {
         expiryDateTime = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
       } else if (packageName === "monthly") {
         expiryDateTime = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+      } else if (packageName === 'once') {
+        expiryDateTime = new Date(now.getTime() + 1 * 24 * 60 * 60 * 1000);
       }
 
       if (expiryDateTime) {
@@ -231,9 +224,11 @@ export const handleMessage = (msg) => {
     if (userStates[chatId] === "awaiting_movie_name") {
       userStates[chatId] = null;
       const query = text.toLowerCase();
-      const matchedMovies = movies.filter((m) =>
-        m.title.toLowerCase().includes(query),
-      );
+
+      const allMovies = await loadMovies()
+      console.log('Searched movies', allMovies.length)
+      const matchedMovies = allMovies.filter(m => m.title.toLowerCase().includes(query));
+      console.log(matchedMovies.length)
 
       if (matchedMovies.length === 0) {
         return bot.sendMessage(
@@ -242,7 +237,7 @@ export const handleMessage = (msg) => {
         );
       }
 
-      const results = matchedMovies.slice(0, 5);
+      const results = matchedMovies
       searchResults[chatId] = results;
 
       const buttons = results.map((movie, index) => {

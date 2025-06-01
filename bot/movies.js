@@ -3,8 +3,7 @@ import { ObjectId } from "mongodb";
 
 export async function loadMovies() {
   const db = await getDB();
-  const movies = await db.collection("movies").find({}).toArray();
-  // console.log(movies)
+  const movies = await db.collection('movies').find({}).toArray();
   return movies;
 }
 
