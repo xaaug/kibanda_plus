@@ -59,6 +59,20 @@ Just type the name of the movie or show. If we have it, you’ll get it. If not.
 export const search = async (msg) => {
   const chatId = msg.chat.id;
 
+  await loadSubscriptions(); // Ensure latest data from disk
+
+  const subscribed = await isSubscribed(chatId);
+  console.log('subscription', subscribed)
+
+  if (!subscribed) {
+    return bot.sendMessage(
+      chatId,
+      `🔒 This content is for *subscribed* users only.\n\nTo unlock access:\n1. Use /packages to view options\n2. Use /subscribe to submit payment\n3. Wait for approval\n\nNeed help? Message Support`,
+      { parse_mode: 'Markdown' }
+    );
+  }
+
+
   const opts = {
     reply_markup: {
       inline_keyboard: [

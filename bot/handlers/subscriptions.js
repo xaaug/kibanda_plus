@@ -11,6 +11,7 @@ export const loadSubscriptions = async () => {
   try {
     const db = await getDB();
     const subscriptions = await db.collection('subscriptions').find({}).toArray();
+    console.log('loaded', subscriptions)
     return subscriptions;  // return loaded subscriptions from DB
   } catch (err) {
     console.error('Failed to load subscriptions from DB:', err);

@@ -4,14 +4,15 @@ import {  saveMovie, loadMovies } from '../movies.js';
 import { isSubscribed, loadSubscriptions } from './subscriptions.js';
 
 
-export const handleCallbackQuery = (callbackQuery) => {
+export const handleCallbackQuery = async(callbackQuery) => {
   const msg = callbackQuery.message;
   const chatId = msg.chat.id;
   const data = callbackQuery.data;
 
-    loadSubscriptions(); // Ensure latest data from disk
+   await loadSubscriptions(); // Ensure latest data from disk
 
-  const subscribed = isSubscribed(chatId);
+  const subscribed = await isSubscribed(chatId);
+  console.log('subscription', subscribed)
 
   if (!subscribed) {
     return bot.sendMessage(
