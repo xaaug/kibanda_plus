@@ -1,6 +1,6 @@
-import fs from 'fs';
+import fs from "fs";
 
-const paymentsFile = './data/pendingPayments.json';
+const paymentsFile = "./data/pendingPayments.json";
 
 let pendingPayments = [];
 

@@ -1,23 +1,25 @@
-import fs from 'fs';
-import bot from '../botInstance.js';
+import fs from "fs";
+import bot from "../botInstance.js";
 
-import { getDB } from '../../data/db.js';
+import { getDB } from "../../data/db.js";
 
-const subsFile = './data/subscriptions.json';
+const subsFile = "./data/subscriptions.json";
 export const subscriptions = [];
 
 // Load subscriptions from file into memory
 export const loadSubscriptions = async () => {
   try {
     const db = await getDB();
-    const subscriptions = await db.collection('subscriptions').find({}).toArray();
-    return subscriptions;  // return loaded subscriptions from DB
+    const subscriptions = await db
+      .collection("subscriptions")
+      .find({})
+      .toArray();
+    return subscriptions; // return loaded subscriptions from DB
   } catch (err) {
-    console.error('Failed to load subscriptions from DB:', err);
+    console.error("Failed to load subscriptions from DB:", err);
     return [];
   }
 };
-
 
 // Save all current in-memory subscriptions to file
 export const writeAllSubscriptions = () => {
@@ -28,10 +30,12 @@ export const writeAllSubscriptions = () => {
 export const saveSubscriptions = async (subscriptionData) => {
   try {
     const db = await getDB();
-    const result = await db.collection('subscriptions').insertOne(subscriptionData);
-    console.log('✅ Subscription saved:', result.insertedId);
+    const result = await db
+      .collection("subscriptions")
+      .insertOne(subscriptionData);
+    console.log("✅ Subscription saved:", result.insertedId);
   } catch (err) {
-    console.error('❌ Failed to save subscription:', err);
+    console.error("❌ Failed to save subscription:", err);
   }
 };
 // Check if user is subscribed (based on userId and status)
@@ -39,11 +43,10 @@ export const isSubscribed = async (userId) => {
   const db = await getDB();
   const now = new Date();
 
-  const userSub = await db.collection('subscriptions').findOne({
+  const userSub = await db.collection("subscriptions").findOne({
     userId,
-    status: 'active',
+    status: "active",
   });
-
 
   if (!userSub) return false;
 
@@ -51,26 +54,26 @@ export const isSubscribed = async (userId) => {
   const expiryDateTime = new Date(expiryString);
 
   if (isNaN(expiryDateTime.getTime())) {
-    console.warn('⚠️ Invalid expiry datetime:', expiryString);
+    console.warn("⚠️ Invalid expiry datetime:", expiryString);
     return false;
   }
 
-  const status = expiryDateTime > now
+  const status = expiryDateTime > now;
 
   return status;
 };
-
-
-
 
 // Deactivate expired subscriptions
 export const deactivateExpiredSubscriptions = async () => {
   const db = await getDB();
   const now = new Date();
 
-  const expiredSubs = await db.collection('subscriptions').find({
-    status: 'active',
-  }).toArray();
+  const expiredSubs = await db
+    .collection("subscriptions")
+    .find({
+      status: "active",
+    })
+    .toArray();
 
   const updates = [];
 
@@ -85,7 +88,10 @@ export const deactivateExpiredSubscriptions = async () => {
 
       // Notify the user
       try {
-        await bot.sendMessage(sub.userId, `⚠️ Your subscription has expired. Renew to continue access.`);
+        await bot.sendMessage(
+          sub.userId,
+          `⚠️ Your subscription has expired. Renew to continue access.`,
+        );
       } catch (err) {
         console.warn(`Could not notify user ${sub.userId}:`, err.message);
       }
@@ -93,13 +99,14 @@ export const deactivateExpiredSubscriptions = async () => {
   }
 
   if (updates.length > 0) {
-    await db.collection('subscriptions').updateMany(
-      { _id: { $in: updates } },
-      { $set: { status: 'expired' } }
-    );
+    await db
+      .collection("subscriptions")
+      .updateMany({ _id: { $in: updates } }, { $set: { status: "expired" } });
 
-    console.log(`⏳ ${updates.length} subscriptions expired and were deactivated.`);
+    console.log(
+      `⏳ ${updates.length} subscriptions expired and were deactivated.`,
+    );
   } else {
-    console.log('✅ No expired subscriptions to deactivate.');
+    console.log("✅ No expired subscriptions to deactivate.");
   }
 };

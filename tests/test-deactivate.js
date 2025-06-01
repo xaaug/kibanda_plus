@@ -1,3 +1,3 @@
-import { deactivateExpiredSubscriptions } from '../bot/handlers/subscriptions.js';
+import { deactivateExpiredSubscriptions } from "../bot/handlers/subscriptions.js";
 
 deactivateExpiredSubscriptions();

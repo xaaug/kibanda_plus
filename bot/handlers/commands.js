@@ -1,20 +1,23 @@
-import bot from '../botInstance.js';
-import { adminId } from '../config.js';
-import { loadMovies , getMovies} from '../movies.js';
-import { userStates } from '../states.js'; 
-import { getChatIdByUsername, removePendingPayment } from './payments.js';
-import { loadSubscriptions, writeAllSubscriptions, subscriptions, isSubscribed } from './subscriptions.js';
+import bot from "../botInstance.js";
+import { adminId } from "../config.js";
+import { loadMovies, getMovies } from "../movies.js";
+import { userStates } from "../states.js";
+import { getChatIdByUsername, removePendingPayment } from "./payments.js";
+import {
+  loadSubscriptions,
+  writeAllSubscriptions,
+  subscriptions,
+  isSubscribed,
+} from "./subscriptions.js";
 
-import { getDB } from '../../data/db.js';
+import { getDB } from "../../data/db.js";
 
 let movies = [];
 
 getMovies().then((loadedMovies) => {
   movies = loadedMovies;
-  console.log('Movies gotten:', movies.length);
+  console.log("Movies gotten:", movies.length);
 });
-
-
 
 export const start = (msg) => {
   const chatId = msg.chat.id;
@@ -35,7 +38,7 @@ Type the name of a movie or show to get started. Yes, it’s that simple.
 
   `;
 
-  bot.sendMessage(chatId, text, { parse_mode: 'Markdown' });
+  bot.sendMessage(chatId, text, { parse_mode: "Markdown" });
 };
 
 export const help = (msg) => {
@@ -53,7 +56,7 @@ export const help = (msg) => {
 Just type the name of the movie or show. If we have it, you’ll get it. If not... well, we’ll pretend we’re working on it.
   `;
 
-  bot.sendMessage(chatId, text, { parse_mode: 'Markdown' });
+  bot.sendMessage(chatId, text, { parse_mode: "Markdown" });
 };
 
 export const search = (msg) => {
@@ -63,25 +66,27 @@ export const search = (msg) => {
     reply_markup: {
       inline_keyboard: [
         [
-          { text: 'Movie', callback_data: 'search_movie' },
-          { text: 'Series', callback_data: 'search_series' },
+          { text: "Movie", callback_data: "search_movie" },
+          { text: "Series", callback_data: "search_series" },
         ],
       ],
     },
   };
 
-  bot.sendMessage(chatId, 'What do you want to search for?', opts);
+  bot.sendMessage(chatId, "What do you want to search for?", opts);
 };
 
 export const request = (msg) => {
   const chatId = msg.chat.id;
-  console.log(` User ${msg.from.username || msg.from.id} requested content in chat ${chatId}`);
+  console.log(
+    ` User ${msg.from.username || msg.from.id} requested content in chat ${chatId}`,
+  );
 
-  userStates[chatId] = 'awaiting_request_input';
+  userStates[chatId] = "awaiting_request_input";
 
   const prompt = `🎤 *What movie or show are you looking for?*\n\nType the name, and we’ll pretend to be shocked it’s not already in our catalog.`;
 
-  bot.sendMessage(chatId, prompt, { parse_mode: 'Markdown' });
+  bot.sendMessage(chatId, prompt, { parse_mode: "Markdown" });
 };
 
 export const processRequestInput = (msg) => {
@@ -90,39 +95,41 @@ export const processRequestInput = (msg) => {
   const query = msg.text.trim();
 
   if (!query) {
-    return bot.sendMessage(chatId, '🚫 You sent an empty request. Hit me with the movie name, please.');
+    return bot.sendMessage(
+      chatId,
+      "🚫 You sent an empty request. Hit me with the movie name, please.",
+    );
   }
 
   bot.sendMessage(
     chatId,
     `*Request received.*\n\nWe’ve thrown your request into the abyss where important things go. If the stars align, you’ll see it soon. Or not. That’s life.`,
-    { parse_mode: 'Markdown' }
+    { parse_mode: "Markdown" },
   );
 
   bot.sendMessage(
     adminId,
     `*New content request:*\nUser: @${username}\nMovie: ${query}`,
-    { parse_mode: 'Markdown' }
+    { parse_mode: "Markdown" },
   );
 
   delete userStates[chatId];
 };
 
-
 export const reload = async (msg) => {
   const chatId = msg.chat.id;
 
   if (msg.from.id !== adminId) {
-    return bot.sendMessage(chatId, '🚫 You are not authorized to do this.');
+    return bot.sendMessage(chatId, "🚫 You are not authorized to do this.");
   }
 
   try {
     const movies = await loadMovies();
     bot.sendMessage(chatId, `✅ Reloaded ${movies.length} movies from file.`);
-    console.log('✅ Movies reloaded from disk.');
+    console.log("✅ Movies reloaded from disk.");
   } catch (err) {
-    bot.sendMessage(chatId, '❌ Failed to reload movies.');
-    console.error('❌ Reload error:', err);
+    bot.sendMessage(chatId, "❌ Failed to reload movies.");
+    console.error("❌ Reload error:", err);
   }
 };
 
@@ -130,7 +137,10 @@ export const adminHelp = (msg) => {
   const chatId = msg.chat.id;
 
   if (msg.from.id !== adminId) {
-    return bot.sendMessage(chatId, '🚫 You are not authorized to view admin commands.');
+    return bot.sendMessage(
+      chatId,
+      "🚫 You are not authorized to view admin commands.",
+    );
   }
 
   const text = `
@@ -141,16 +151,16 @@ export const adminHelp = (msg) => {
 /movies - List all movies currently loaded
 `;
 
-  bot.sendMessage(chatId, text, { parse_mode: 'Markdown' });
+  bot.sendMessage(chatId, text, { parse_mode: "Markdown" });
 };
 
 export const moviesList = async (msg) => {
   const chatId = msg.chat.id;
 
-  const movies = await loadMovies()
-    console.log('Movies loaded:', movies.length);
+  const movies = await loadMovies();
+  console.log("Movies loaded:", movies.length);
   if (movies.length === 0) {
-    return bot.sendMessage(chatId, 'No movies loaded currently.');
+    return bot.sendMessage(chatId, "No movies loaded currently.");
   }
 
   const chunkSize = 20;
@@ -159,25 +169,25 @@ export const moviesList = async (msg) => {
     const message = chunk
       .map(
         (m) =>
-          `🎬 *${m.title}* (${m.year}) — _${m.genre}_ | 📺 ${m.resolution || 'N/A'}`
+          `🎬 *${m.title}* (${m.year}) — _${m.genre}_ | 📺 ${m.resolution || "N/A"}`,
       )
-      .join('\n');
-    bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
+      .join("\n");
+    bot.sendMessage(chatId, message, { parse_mode: "Markdown" });
   }
 };
-
 
 export const subscribe = async (msg) => {
   const chatId = msg.chat.id;
   const userId = msg.from.id;
 
-  
-  const status =   await isSubscribed(userId);
-  console.log('Subscription', status)
-
+  const status = await isSubscribed(userId);
+  console.log("Subscription", status);
 
   if (status) {
-     return bot.sendMessage(chatId, "⚠️ You already have an active subscription. No need to pay again.");
+    return bot.sendMessage(
+      chatId,
+      "⚠️ You already have an active subscription. No need to pay again.",
+    );
   }
 
   const prompt = `
@@ -206,63 +216,75 @@ We’ll verify and activate your subscription shortly.
 ✅ You’ll receive a confirmation once your access is active.
 `;
 
-  bot.sendMessage(chatId, prompt, { parse_mode: 'Markdown' });
-  userStates[chatId] = 'awaiting_subscription_input';
+  bot.sendMessage(chatId, prompt, { parse_mode: "Markdown" });
+  userStates[chatId] = "awaiting_subscription_input";
 };
 
-
 //Handle user subscription check request
-
-
 
 export const approve = async (msg, match) => {
   const chatId = msg.chat.id;
   const username = match[1]?.toLowerCase();
 
   if (!username) {
-    return bot.sendMessage(chatId, "⚠️ Please provide a username.\nUsage: /approve @username");
+    return bot.sendMessage(
+      chatId,
+      "⚠️ Please provide a username.\nUsage: /approve @username",
+    );
   }
 
   try {
     const db = await getDB();
 
     // Find pending subs
-    const pendingSubs = await db.collection('subscriptions').find({
-      username: username,
-      status: 'pending',
-    }).toArray();
-
+    const pendingSubs = await db
+      .collection("subscriptions")
+      .find({
+        username: username,
+        status: "pending",
+      })
+      .toArray();
 
     if (pendingSubs.length === 0) {
-      return bot.sendMessage(chatId, `❌ No pending subscription found for @${username}`);
+      return bot.sendMessage(
+        chatId,
+        `❌ No pending subscription found for @${username}`,
+      );
     }
 
     // Update status to active
-    await db.collection('subscriptions').updateMany(
-      { username: username, status: 'pending' },
-      { $set: { status: 'active' } }
-    );
+    await db
+      .collection("subscriptions")
+      .updateMany(
+        { username: username, status: "pending" },
+        { $set: { status: "active" } },
+      );
 
     // Notify users
     for (const sub of pendingSubs) {
-      await bot.sendMessage(sub.userId, `✅ Your subscription is now *active*! Valid until: ${sub.expiryDate} ${sub.expiryTime}`, {
-        parse_mode: 'Markdown',
-      });
+      await bot.sendMessage(
+        sub.userId,
+        `✅ Your subscription is now *active*! Valid until: ${sub.expiryDate} ${sub.expiryTime}`,
+        {
+          parse_mode: "Markdown",
+        },
+      );
     }
 
-    bot.sendMessage(chatId, `👍 Approved ${pendingSubs.length} subscription(s) for @${username}`);
-
+    bot.sendMessage(
+      chatId,
+      `👍 Approved ${pendingSubs.length} subscription(s) for @${username}`,
+    );
   } catch (err) {
-    console.error('Approve error:', err);
-    bot.sendMessage(chatId, '❌ Error approving subscriptions. Try again later.');
+    console.error("Approve error:", err);
+    bot.sendMessage(
+      chatId,
+      "❌ Error approving subscriptions. Try again later.",
+    );
   }
 };
 
-
-
-
-
-export const packages = msg => {
+export const packages = (msg) => {
   const chatId = msg.chat.id;
   const text = `🎉 *Welcome to the Subscription Circus!*
 
@@ -282,11 +304,9 @@ All-you-can-download buffet for 30 days. Stream like a pro and flex on your frie
 *Choose your poison, pay the piper, and then hit /subscribe to send us your payment code. We’ll sort you out.*
 
 Pro tip: Paying in anything less than full enthusiasm might result in no downloads. No refunds. No excuses.
-`
- bot.sendMessage(chatId, text, { parse_mode: 'Markdown' });
-
-}
-
+`;
+  bot.sendMessage(chatId, text, { parse_mode: "Markdown" });
+};
 
 export const status = async (msg) => {
   const chatId = msg.chat.id;
@@ -294,43 +314,53 @@ export const status = async (msg) => {
 
   const allSubscriptions = await loadSubscriptions(); // Ensure we load the latest from disk
 
-  const userSubs = allSubscriptions.filter(sub => sub.userId === chatId);
+  const userSubs = allSubscriptions.filter((sub) => sub.userId === chatId);
 
   if (userSubs.length === 0) {
-    return bot.sendMessage(chatId, ' You have no subscription records yet.\nUse /subscribe to get started.');
+    return bot.sendMessage(
+      chatId,
+      " You have no subscription records yet.\nUse /subscribe to get started.",
+    );
   }
 
   const latestSub = userSubs[userSubs.length - 1]; // Assume the most recent entry is last
   const { status, package: pkg, expiryDate, code } = latestSub;
 
-  if (status === 'pending') {
-    return bot.sendMessage(chatId, `🕓 Your subscription is still *pending approval*.\n🔑 Code: \`${code}\``, {
-      parse_mode: 'Markdown',
-    });
-  }
-
-  if (status === 'active') {
+  if (status === "pending") {
     return bot.sendMessage(
       chatId,
-      `✅ You have an *active* subscription.\n\nPackage: *${pkg}*\nExpires: *${expiryDate}*`,
-      { parse_mode: 'Markdown' }
+      `🕓 Your subscription is still *pending approval*.\n🔑 Code: \`${code}\``,
+      {
+        parse_mode: "Markdown",
+      },
     );
   }
 
-  if (status === 'expired') {
+  if (status === "active") {
+    return bot.sendMessage(
+      chatId,
+      `✅ You have an *active* subscription.\n\nPackage: *${pkg}*\nExpires: *${expiryDate}*`,
+      { parse_mode: "Markdown" },
+    );
+  }
+
+  if (status === "expired") {
     return bot.sendMessage(
       chatId,
       `⚠️ Your subscription has *expired*.\n\nLast Package: *${pkg}*\nUse /subscribe to renew.`,
-      { parse_mode: 'Markdown' }
+      { parse_mode: "Markdown" },
     );
   }
 
   // Catch unexpected status
-  return bot.sendMessage(chatId, 'Something went wrong. Please contact support.');
+  return bot.sendMessage(
+    chatId,
+    "Something went wrong. Please contact support.",
+  );
 };
 
-export const test = msg => {
-  const chatId = msg.chat.id
+export const test = (msg) => {
+  const chatId = msg.chat.id;
 
-  bot.sendMessage(chatId,'Command executed')
-}
+  bot.sendMessage(chatId, "Command executed");
+};
