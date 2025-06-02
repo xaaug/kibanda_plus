@@ -29,8 +29,8 @@ export const handleCallbackQuery = async (callbackQuery) => {
     userStates[chatId] = 'awaiting_movie_name';
     bot.sendMessage(chatId, '🔥 Type the name of the movie you want to find:');
   } else if (data === 'search_series') {
-    userStates[chatId] = 'awaiting_series_name';
-    bot.sendMessage(chatId, '🔥 Type the name of the series you want to find:');
+    // userStates[chatId] = 'awaiting_series_name';
+    bot.sendMessage(chatId, 'Feature coming soon');
   } else if (data.startsWith("get_")) {
     const index = Number(data.split("_")[1]);
     const results = searchResults[chatId];

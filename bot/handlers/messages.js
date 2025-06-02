@@ -161,7 +161,7 @@ export const handleMessage = async (msg) => {
         expiryDateTime = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
       } else if (packageName === "monthly") {
         expiryDateTime = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-      } else if (packageName === 'once') {
+      } else if (packageName === 'one') {
         expiryDateTime = new Date(now.getTime() + 1 * 24 * 60 * 60 * 1000);
       }
 

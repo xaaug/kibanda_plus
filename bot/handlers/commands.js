@@ -211,7 +211,7 @@ export const subscribe = async (msg) => {
 *Ready to get VIP access?* 
 
 Available packages:
-- *Once* — One-time access for one content. - 10 
+- *One* — One-time access for one content. - 10 
 - *Weekly* — Unlimited downloads for 7 days. - 100 
 - *Monthly* — Unlimited downloads for 30 days. - 250 
 
@@ -306,7 +306,7 @@ export const packages = (msg) => {
 
 Here’s the *very exclusive* lineup of ways you can throw your money at us and get some content:
 
-*Access Pass - 10*  
+*One Movie - 10*  
 Just wanna dip your toes? Pay 10 KES for a one-time download. It’s like buying a single slice of pizza, but for movies. *Mmm, delicious.*
 
 *Weekly Chaos Pass - 100*  
