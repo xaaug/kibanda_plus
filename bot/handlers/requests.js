@@ -12,7 +12,7 @@ export const processRequestInput = (msg) => {
 
 
 
-  console.log(REQUEST_GROUP_ID)
+  // console.log(REQUEST_GROUP_ID)
 
   if (!query) {
     return bot.sendMessage(chatId, '🚫 You sent an empty request. Hit me with the movie name, please.');

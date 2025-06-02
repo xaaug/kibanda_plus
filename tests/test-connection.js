@@ -4,7 +4,7 @@ import { BOT_TOKEN } from "../config/env.js";
 
 // const uri = MONGODB_URI
 
-console.log("BOT_TOKEN", BOT_TOKEN);
+// console.log("BOT_TOKEN", BOT_TOKEN);
 
 console.log(uri);
 

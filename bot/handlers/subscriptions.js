@@ -60,6 +60,8 @@ export const isSubscribed = async (userId) => {
 
   const status = expiryDateTime > now;
 
+  // console.log("status", status)
+
   return status;
 };
 

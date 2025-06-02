@@ -65,7 +65,7 @@ export const search = async (msg) => {
   await loadSubscriptions(); // Ensure latest data from disk
 
   const subscribed = await isSubscribed(chatId);
-  console.log('subscription', subscribed)
+  // console.log('subscription', subscribed)
 
   if (!subscribed) {
     return bot.sendMessage(
@@ -95,7 +95,7 @@ export const search = async (msg) => {
 export const request = (msg) => {
   const chatId = msg.chat.id;
 
-  console.log("New request")
+  // console.log("New request")
   
   bot.sendMessage(
     chatId,
@@ -174,7 +174,7 @@ export const moviesList = async (msg) => {
   const chatId = msg.chat.id;
 
   const movies = await loadMovies();
-  console.log("Movies loaded:", movies.length);
+  // console.log("Movies loaded:", movies.length);
   if (movies.length === 0) {
     return bot.sendMessage(chatId, "No movies loaded currently.");
   }
@@ -198,6 +198,8 @@ export const subscribe = async (msg) => {
 
   
   const status =   await isSubscribed(userId);
+
+  // console.log('status', status)
 
 
   if (status) {

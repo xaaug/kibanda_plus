@@ -1,6 +1,6 @@
 import bot from "../botInstance.js";
 import { userStates, searchResults, newMovieStates } from "../states.js";
-import { saveMovie } from "../movies.js";
+import { saveMovie, loadMovies } from "../movies.js";
 import { isSubscribed, loadSubscriptions } from "./subscriptions.js";
 
 export const handleCallbackQuery = async (callbackQuery) => {
@@ -15,7 +15,7 @@ export const handleCallbackQuery = async (callbackQuery) => {
 
     
     const subscribed = await isSubscribed(chatId);
-    console.log('Subscription', subscribed)
+    // console.log('Subscription', subscribed)
 
     if (!subscribed) {
       return bot.sendMessage(

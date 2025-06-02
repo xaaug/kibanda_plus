@@ -77,7 +77,7 @@ export const handleMessage = async (msg) => {
 
     // /movies to list movies
     if (text === "/movies") {
-      console.log("movies", movies);
+      // console.log("movies", movies);
       if (movies.length === 0) {
         return bot.sendMessage(chatId, "No movies loaded currently.");
       }
@@ -101,7 +101,7 @@ export const handleMessage = async (msg) => {
     //Handle user content requests
 
   if (userStates[chatId] === 'awaiting_request_input') {
-    console.log("Processing request input")
+    // console.log("Processing request input")
     processRequestInput(msg);
     return;
   }
@@ -167,9 +167,9 @@ export const handleMessage = async (msg) => {
 
       if (expiryDateTime) {
         expiryDate = expiryDateTime.toISOString().split("T")[0]; // 'YYYY-MM-DD'
-        console.log(expiryDate);
+        // console.log(expiryDate);
         expiryTime = expiryDateTime.toISOString().split("T")[1].split(".")[0]; // 'HH:mm:ss'
-        console.log(expiryTime);
+        // console.log(expiryTime);
       }
 
       const subscriptionData = {
@@ -226,9 +226,9 @@ export const handleMessage = async (msg) => {
       const query = text.toLowerCase();
 
       const allMovies = await loadMovies()
-      console.log('Searched movies', allMovies.length)
+      // console.log('Searched movies', allMovies.length)
       const matchedMovies = allMovies.filter(m => m.title.toLowerCase().includes(query));
-      console.log(matchedMovies.length)
+      // console.log(matchedMovies.length)
 
       if (matchedMovies.length === 0) {
         return bot.sendMessage(
