@@ -13,11 +13,10 @@ import {
   loadSubscriptions,
 } from "./subscriptions.js";
 
-import { processRequestInput } from './commands.js';
+import { processRequestInput } from "./commands.js";
 
 const adminId = Number(USER_ID);
 const loggingGroupId = Number(LOGGING_GROUP_ID);
-
 
 const knownCommands = [
   "/start",
@@ -100,11 +99,11 @@ export const handleMessage = async (msg) => {
 
     //Handle user content requests
 
-  if (userStates[chatId] === 'awaiting_request_input') {
-    // console.log("Processing request input")
-    processRequestInput(msg);
-    return;
-  }
+    if (userStates[chatId] === "awaiting_request_input") {
+      // console.log("Processing request input")
+      processRequestInput(msg);
+      return;
+    }
 
     //Handle user subscription
     if (userStates[chatId] === "awaiting_subscription_input") {
@@ -161,7 +160,7 @@ export const handleMessage = async (msg) => {
         expiryDateTime = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
       } else if (packageName === "monthly") {
         expiryDateTime = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-      } else if (packageName === 'one') {
+      } else if (packageName === "one") {
         expiryDateTime = new Date(now.getTime() + 1 * 24 * 60 * 60 * 1000);
       }
 
@@ -225,9 +224,11 @@ export const handleMessage = async (msg) => {
       userStates[chatId] = null;
       const query = text.toLowerCase();
 
-      const allMovies = await loadMovies()
+      const allMovies = await loadMovies();
       // console.log('Searched movies', allMovies.length)
-      const matchedMovies = allMovies.filter(m => m.title.toLowerCase().includes(query));
+      const matchedMovies = allMovies.filter((m) =>
+        m.title.toLowerCase().includes(query),
+      );
       // console.log(matchedMovies.length)
 
       if (matchedMovies.length === 0) {
@@ -237,7 +238,7 @@ export const handleMessage = async (msg) => {
         );
       }
 
-      const results = matchedMovies
+      const results = matchedMovies;
       searchResults[chatId] = results;
 
       const buttons = results.map((movie, index) => {

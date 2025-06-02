@@ -10,8 +10,8 @@ import {
   isSubscribed,
 } from "./subscriptions.js";
 
-import { getDB } from '../../data/db.js';
-import { REQUEST_GROUP_ID } from '../../config/env.js';
+import { getDB } from "../../data/db.js";
+import { REQUEST_GROUP_ID } from "../../config/env.js";
 
 let movies = [];
 
@@ -71,10 +71,9 @@ export const search = async (msg) => {
     return bot.sendMessage(
       chatId,
       `🔒 This content is for *subscribed* users only.\n\nTo unlock access:\n1. Use /packages to view options\n2. Use /subscribe to submit payment\n3. Use /statut to view your subscription status\n4. Wait for approval\n\nNeed help? Message Support`,
-      { parse_mode: 'Markdown' }
+      { parse_mode: "Markdown" },
     );
   }
-
 
   const opts = {
     reply_markup: {
@@ -87,27 +86,27 @@ export const search = async (msg) => {
     },
   };
 
-  await loadMovies()
+  await loadMovies();
 
-  bot.sendMessage(chatId, 'What do you want to search for?', opts);
+  bot.sendMessage(chatId, "What do you want to search for?", opts);
 };
 
 export const request = (msg) => {
   const chatId = msg.chat.id;
 
   // console.log("New request")
-  
+
   bot.sendMessage(
     chatId,
-    '🎬 What movie or show do you want? Drop the name below and we’ll throw it into the content universe.'
+    "🎬 What movie or show do you want? Drop the name below and we’ll throw it into the content universe.",
   );
-  userStates[chatId] = 'awaiting_request_input';
+  userStates[chatId] = "awaiting_request_input";
 };
 
 export const processRequestInput = (msg) => {
   const chatId = msg.chat.id;
   const username = msg.from.first_name || `ID: ${msg.from.id}`;
-  const userId = msg.from.id
+  const userId = msg.from.id;
   const query = msg.text.trim();
 
   if (!query) {
@@ -126,7 +125,7 @@ export const processRequestInput = (msg) => {
   bot.sendMessage(
     REQUEST_GROUP_ID,
     `*New content request:*\nUser: @${username}\nID: ${userId}\nMovie: ${query}`,
-    { parse_mode: 'Markdown' }
+    { parse_mode: "Markdown" },
   );
 
   delete userStates[chatId];
@@ -196,11 +195,9 @@ export const subscribe = async (msg) => {
   const chatId = msg.chat.id;
   const userId = msg.from.id;
 
-  
-  const status =   await isSubscribed(userId);
+  const status = await isSubscribed(userId);
 
   // console.log('status', status)
-
 
   if (status) {
     return bot.sendMessage(
@@ -238,7 +235,6 @@ We’ll verify and activate your subscription shortly.
   bot.sendMessage(chatId, prompt, { parse_mode: "Markdown" });
   userStates[chatId] = "awaiting_subscription_input";
 };
-
 
 export const approve = async (msg, match) => {
   const chatId = msg.chat.id;

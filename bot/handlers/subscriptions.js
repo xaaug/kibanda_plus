@@ -77,15 +77,14 @@ export const deactivateExpiredSubscriptions = async () => {
     })
     .toArray();
 
-  
   const updates = [];
-  
+
   for (const sub of expiredSubs) {
     const expiryString = `${sub.expiryDate}T${sub.expiryTime}`;
     const expiryDateTime = new Date(expiryString);
-    
+
     if (isNaN(expiryDateTime.getTime())) continue;
-    
+
     if (expiryDateTime < now) {
       updates.push(sub._id);
 
@@ -100,7 +99,6 @@ export const deactivateExpiredSubscriptions = async () => {
       }
     }
   }
-
 
   if (updates.length > 0) {
     await db

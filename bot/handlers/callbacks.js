@@ -8,12 +8,9 @@ export const handleCallbackQuery = async (callbackQuery) => {
   const chatId = msg.chat.id;
   const data = callbackQuery.data;
 
-
-  if (data === 'search_movie') {
-
+  if (data === "search_movie") {
     await loadSubscriptions(); // Ensure latest data from disk
 
-    
     const subscribed = await isSubscribed(chatId);
     // console.log('Subscription', subscribed)
 
@@ -21,16 +18,15 @@ export const handleCallbackQuery = async (callbackQuery) => {
       return bot.sendMessage(
         chatId,
         `🔒 This content is for *subscribed* users only.\n\nTo unlock access:\n1. Use /packages to view options\n2. Use /subscribe to submit payment\n3. Wait for approval\n\nNeed help? Message Support`,
-        { parse_mode: 'Markdown' }
+        { parse_mode: "Markdown" },
       );
     }
 
-
-    userStates[chatId] = 'awaiting_movie_name';
-    bot.sendMessage(chatId, '🔥 Type the name of the movie you want to find:');
-  } else if (data === 'search_series') {
+    userStates[chatId] = "awaiting_movie_name";
+    bot.sendMessage(chatId, "🔥 Type the name of the movie you want to find:");
+  } else if (data === "search_series") {
     // userStates[chatId] = 'awaiting_series_name';
-    bot.sendMessage(chatId, 'Feature coming soon');
+    bot.sendMessage(chatId, "Feature coming soon");
   } else if (data.startsWith("get_")) {
     const index = Number(data.split("_")[1]);
     const results = searchResults[chatId];
