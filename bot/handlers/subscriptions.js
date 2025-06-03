@@ -14,6 +14,7 @@ export const loadSubscriptions = async () => {
       .collection("subscriptions")
       .find({})
       .toArray();
+    // console.log("Loaded Subscriptions", subscriptions)
     return subscriptions; // return loaded subscriptions from DB
   } catch (err) {
     console.error("Failed to load subscriptions from DB:", err);
@@ -72,12 +73,10 @@ export const deactivateExpiredSubscriptions = async () => {
 
   const expiredSubs = await db
     .collection("subscriptions")
-    .find({
-      status: "active",
-    })
+    .find({ status: "active" })
     .toArray();
 
-  const updates = [];
+  const idsToDelete = [];
 
   for (const sub of expiredSubs) {
     const expiryString = `${sub.expiryDate}T${sub.expiryTime}`;
@@ -86,7 +85,7 @@ export const deactivateExpiredSubscriptions = async () => {
     if (isNaN(expiryDateTime.getTime())) continue;
 
     if (expiryDateTime < now) {
-      updates.push(sub._id);
+      idsToDelete.push(sub._id);
 
       // Notify the user
       try {
@@ -99,6 +98,17 @@ export const deactivateExpiredSubscriptions = async () => {
       }
     }
   }
+
+  // Delete expired subscriptions from DB
+  if (idsToDelete.length > 0) {
+    await db
+      .collection("subscriptions")
+      .deleteMany({ _id: { $in: idsToDelete } });
+
+    console.log(`✅ Deleted ${idsToDelete.length} expired subscriptions.`);
+  }
+
+
 
   if (updates.length > 0) {
     await db

@@ -206,11 +206,22 @@ export const subscribe = async (msg) => {
     );
   }
 
+  const loadedSubscriptions = await loadSubscriptions()
+  const subscriptionPending = loadedSubscriptions.some((sub) => sub.status === 'pending') && loadedSubscriptions.some((sub) => sub.userId === chatId);
+  if (subscriptionPending) {
+    return bot.sendMessage(
+      chatId,
+      "⚠️ Your subscription is pending verification. You'll be notified once it's active.",
+      { parse_mode: "Markdown" },
+    );
+  }
+
+
   const prompt = `
 *Ready to get VIP access?* 
 
 Available packages:
-- *One* — One-time access for one content. - 10 
+- *Once* — One-time access for one content. - 10 
 - *Weekly* — Unlimited downloads for 7 days. - 100 
 - *Monthly* — Unlimited downloads for 30 days. - 250 
 
@@ -350,10 +361,13 @@ export const status = async (msg) => {
     );
   }
 
+
+  const formattedPkgName = pkg[0].toUpperCase() + pkg.slice(1)
+
   if (status === "active") {
     return bot.sendMessage(
       chatId,
-      `✅ You have an *active* subscription.\n\nPackage: *${pkg}*\nExpires: *${expiryDate}*`,
+      `✅ You have an *active* subscription.\n\nPackage: *${formattedPkgName}*\nExpires: *${expiryDate}*`,
       { parse_mode: "Markdown" },
     );
   }

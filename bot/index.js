@@ -16,16 +16,8 @@ setInterval(
     await loadSubscriptions();
     await deactivateExpiredSubscriptions();
   },
-  60 * 60 * 1000,
+  10 * 60 * 1000,
 ); // every 1 hour 60 * 60 * 1000
-
-setInterval(
-  () => {
-    loadSubscriptions();
-    deactivateExpiredSubscriptions();
-  },
-  60 * 60 * 1000,
-); // every 1 hour
 
 // Register command handlers
 bot.onText(/\/start/, commands.start);

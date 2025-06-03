@@ -35,6 +35,7 @@ const knownCommands = [
 
 export const handleMessage = async (msg) => {
   const chatId = msg.chat.id;
+  console.log(chatId)
   const text = msg.text;
   const sender = msg.from?.username || msg.from?.first_name || "Unknown";
 
@@ -138,12 +139,21 @@ export const handleMessage = async (msg) => {
       }
 
       // Check for duplicate code
-      loadSubscriptions();
-      const isDuplicate = subscriptions.some((sub) => sub.code === paymentCode);
+      const loadedSubscriptions = await loadSubscriptions();
+      const isDuplicate = loadedSubscriptions.some((sub) => sub.code === paymentCode);
       if (isDuplicate) {
         return bot.sendMessage(
           chatId,
           "⚠️ This M-Pesa code has already been submitted. If this is a mistake, contact support.",
+          { parse_mode: "Markdown" },
+        );
+      }
+
+      const subscriptionPending = loadedSubscriptions.some((sub) => sub.status === 'pending') && loadedSubscriptions.some((sub) => sub.userId === chatId);
+      if (subscriptionPending) {
+        return bot.sendMessage(
+          chatId,
+          "⚠️ Your subscription is pending verification. You'll be notified once it's active.",
           { parse_mode: "Markdown" },
         );
       }
@@ -160,8 +170,8 @@ export const handleMessage = async (msg) => {
         expiryDateTime = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
       } else if (packageName === "monthly") {
         expiryDateTime = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-      } else if (packageName === "one") {
-        expiryDateTime = new Date(now.getTime() + 1 * 24 * 60 * 60 * 1000);
+      } else if (packageName === "once") {
+        expiryDateTime = new Date(now.getTime() + 24 * 60 * 60 * 1000);
       }
 
       if (expiryDateTime) {
