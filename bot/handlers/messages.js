@@ -1,6 +1,6 @@
 import bot from "../botInstance.js";
 import { userStates, newMovieStates, searchResults } from "../states.js";
-import { loadMovies, getMovies } from "../movies.js";
+import { loadMovies, getMovies, saveMovie } from "../movies.js";
 import {
   USER_ID,
   LOGGING_GROUP_ID,
@@ -335,30 +335,83 @@ export const handleMessage = async (msg) => {
   } // End of text-based handlers
 
   // Handle video messages (no text required)
-  if (msg.video) {
+  // if (msg.video) {
+  //   const isForwarded = !!msg.forward_from_chat || !!msg.forward_from;
+  //   const file_id = msg.video.file_id;
+  //   const isInLoggingGroup = chatId === loggingGroupId;
+  //   const isFromAdmin = msg.from?.id === adminId;
+  //
+  //   // Accept videos only if forwarded in logging group or sent by admin
+  //   if ((isInLoggingGroup && isForwarded) || isFromAdmin) {
+  //     console.log(
+  //       `[🎬 Video detected] file_id: ${file_id} from ${sender} in chat ${chatId}`,
+  //     );
+  //
+  //     bot.sendMessage(
+  //       chatId,
+  //       `🎥 Got it. Saved file_id:\n${file_id}\n\nNow tell me:\n1. Movie Title?`,
+  //     );
+  //     newMovieStates[chatId] = {
+  //       step: "awaiting_title",
+  //       file_id,
+  //     };
+  //     return;
+  //   }
+  // }
+
+  if (msg.video || msg.document) {
     const isForwarded = !!msg.forward_from_chat || !!msg.forward_from;
-    const file_id = msg.video.file_id;
     const isInLoggingGroup = chatId === loggingGroupId;
     const isFromAdmin = msg.from?.id === adminId;
 
-    // Accept videos only if forwarded in logging group or sent by admin
     if ((isInLoggingGroup && isForwarded) || isFromAdmin) {
-      console.log(
-        `[🎬 Video detected] file_id: ${file_id} from ${sender} in chat ${chatId}`,
-      );
+      const file_id = msg.video?.file_id || msg.document?.file_id;
+      let rawMeta = "";
 
-      bot.sendMessage(
-        chatId,
-        `🎥 Got it. Saved file_id:\n${file_id}\n\nNow tell me:\n1. Movie Title?`,
-      );
-      newMovieStates[chatId] = {
-        step: "awaiting_title",
-        file_id,
-      };
-      return;
+      // Determine metadata source
+      if (msg.document && msg.document.mime_type?.startsWith("video/")) {
+        rawMeta = msg.document.file_name?.replace(".mp4", "") || "";
+      } else if (msg.video?.file_name) {
+        rawMeta = msg.video.file_name.replace(".mp4", "");
+      } else if (msg.caption) {
+        rawMeta = msg.caption;
+      }
+
+      console.log(`[🎬 Media detected] file_id: ${file_id} | rawMeta: ${rawMeta}`);
+
+      const parts = rawMeta.split("-");
+      if (parts.length === 4) {
+        const [title, year, genre, resolution] = parts.map((p) => p.trim());
+
+        const movie = {
+          title,
+          year,
+          genre,
+          resolution,
+          file_id,
+        };
+
+        const saved = await saveMovie(movie);
+
+        if (saved) {
+          bot.sendMessage(
+            chatId,
+            `✅ Movie saved:\n*${title}* (${year}) — _${genre}_ — Resolution: *${resolution}*`,
+            { parse_mode: "Markdown" }
+          );
+        } else {
+          bot.sendMessage(chatId, `⚠️ This movie already exists.`);
+        }
+      } else {
+        bot.sendMessage(
+          chatId,
+          `❗ Invalid format. Use filename or caption like: Title-Year-Genre-Res`,
+        );
+      }
     }
   }
 
+
   // If none of the above matched, send fallback message
-  // bot.sendMessage(chatId, 'You’re breaking the matrix. Try /help to get back on track.');
-};
+    // bot.sendMessage(chatId, 'You’re breaking the matrix. Try /help to get back on track.');
+  }

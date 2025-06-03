@@ -20,6 +20,8 @@ export async function saveMovie(movie) {
 
   if (exists) return false;
 
+  console.log("testing saving movie")
+
   // Add initial popularity and timestamps
   const newMovie = {
     ...movie,
