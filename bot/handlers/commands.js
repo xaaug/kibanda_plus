@@ -217,33 +217,23 @@ export const subscribe = async (msg) => {
   }
 
 
-  const prompt = `
-*Ready to get VIP access?* 
+  bot.sendMessage(chatId, `*Ready to get VIP access?*\n\nSelect your subscription package below:`, {
+    parse_mode: "Markdown",
+    reply_markup: {
+      inline_keyboard: [
+        [
+          { text: " Once – 10", callback_data: "subscribe_once" }
+        ],
+        [
+          { text: " Weekly – 100", callback_data: "subscribe_weekly" }
+        ],
+        [
+          { text: " Monthly – 250", callback_data: "subscribe_monthly" }
+        ]
+      ]
+    }
+  });
 
-Available packages:
-- *Once* — One-time access for one content. - 10 
-- *Weekly* — Unlimited downloads for 7 days. - 100 
-- *Monthly* — Unlimited downloads for 30 days. - 250 
-
-To subscribe, follow these steps:
-
-1. Go to M-Pesa → Send Money
-   • Number: 0728507218
-   • Amount: Your Package Price
-
-2. After payment, send your M-Pesa confirmation using this format:
-
-\`[package] [your M-Pesa code]\`
-
-Example:
-\`weekly QJD4KL9K3H\`
-
-We’ll verify and activate your subscription shortly. 
-
-✅ You’ll receive a confirmation once your access is active.
-`;
-
-  bot.sendMessage(chatId, prompt, { parse_mode: "Markdown" });
   userStates[chatId] = "awaiting_subscription_input";
 };
 

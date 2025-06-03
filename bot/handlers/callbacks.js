@@ -72,6 +72,30 @@ export const handleCallbackQuery = async (callbackQuery) => {
     delete searchResults[chatId]; // optional: clean up memory
   }
 
+  // Handle package selection
+  if (!data.startsWith("subscribe_")) return;
+
+  const selectedPackage = data.split("_")[1];
+
+
+  const instructions = `
+*Great! You selected the* _${selectedPackage}_ *package.*
+
+1. Go to M-Pesa → *Send Money*
+   • Number: *Number*
+   • Amount: *based on your package*
+
+2. After payment, send your M-Pesa confirmation using this format:
+\`${selectedPackage} QJD4KL9K3H\`
+
+We'll verify and activate your subscription shortly. ✅`;
+
+  bot.sendMessage(chatId, instructions, {
+    parse_mode: "Markdown"
+  });
+
+  userStates[chatId] = "awaiting_subscription_input";
+
   // // === Handle genre selection ===
   // else if (data.startsWith("genre_")) {
   //   const genre = data.replace("genre_", "");
