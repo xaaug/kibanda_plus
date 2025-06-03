@@ -4,7 +4,7 @@ import { loadMovies, getMovies, saveMovie } from "../movies.js";
 import {
   USER_ID,
   LOGGING_GROUP_ID,
-  SUBSCRIPTIONSCHANNEL_ID,
+  SUBSCRIPTIONSCHANNEL_ID, REQUEST_GROUP_ID
 } from "../../config/env.js";
 import { addPendingPayment } from "./payments.js";
 import {
@@ -17,6 +17,7 @@ import { processRequestInput } from "./commands.js";
 
 const adminId = Number(USER_ID);
 const loggingGroupId = Number(LOGGING_GROUP_ID);
+const requestGroupId = Number(REQUEST_GROUP_ID)
 
 const knownCommands = [
   "/start",
@@ -242,10 +243,21 @@ export const handleMessage = async (msg) => {
       // console.log(matchedMovies.length)
 
       if (matchedMovies.length === 0) {
-        return bot.sendMessage(
-          chatId,
-          `No movies found matching "${text}". Try another name or /request it.`,
-        );
+        // return bot.sendMessage(
+        //   chatId,
+        //   `No movies found matching "${text}". Try another name or /request it.`,
+        // );
+
+        await bot.sendMessage(requestGroupId, `🎬 New movie request:\n*${text}*`, {
+          parse_mode: "Markdown",
+        });
+
+        // Notify user
+        await bot.sendMessage(chatId, `🔍 We don’t have "*${text}*" yet, but we are looking for it!`, {
+          parse_mode: "Markdown",
+        });
+
+        return;
       }
 
       const results = matchedMovies;
