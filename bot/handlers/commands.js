@@ -415,12 +415,19 @@ export const latest = async (msg) => {
 export const stats = async (msg) => {
   const chatId = msg.chat.id;
 
+  if (msg.from.id !== adminId) {
+    return bot.sendMessage(
+      chatId,
+      "🚫 You are not authorized to view admin commands.",
+    );
+  }
+
   // const allUsers = await getAllUsers(); // array of user IDs
   const allMovies = await loadMovies(); // array of movie objects
   const allSubs = await loadSubscriptions(); // array of sub objects
 
-  const activeSubs = allSubs.filter(sub => sub.status === "active");
-  const pendingSubs = allSubs.filter(sub => sub.status === "pending");
+  const activeSubs = allSubs.filter((sub) => sub.status === "active");
+  const pendingSubs = allSubs.filter((sub) => sub.status === "pending");
 
   const today = new Date();
   today.setHours(0, 0, 0, 0); // Set to start of today
@@ -432,20 +439,20 @@ export const stats = async (msg) => {
     return createdAt.getTime() === today.getTime();
   });
 
+  // TODO: Track and Fetch Users
   const statsMsg = `
 📊 *Bot Stats:*
 
-👥 *Total Users:*  \n
-🎬 *Movies Uploaded:* ${allMovies.length} \n
-📥 *Pending Subscriptions:* ${pendingSubs.length} \n
-✅ *Active Subscriptions:* ${activeSubs.length} \n
+*Total Users:*  \n
+*Movies Uploaded:* ${allMovies.length} \n
+*Pending Subscriptions:* ${pendingSubs.length} \n
+*Active Subscriptions:* ${activeSubs.length} \n
 
-🗓️ *Today’s Uploads:* ${todaysUploads.length}
+*Today’s Uploads:* ${todaysUploads.length}
   `;
 
   bot.sendMessage(chatId, statsMsg, { parse_mode: "Markdown" });
 };
-
 
 export const test = (msg) => {
   const chatId = msg.chat.id;

@@ -11,18 +11,17 @@
 [ x ] Prevent upload of already available content  
 [ ] Show limited movies and add next button - /search command  
 [ ] Accept/Deny Requests
-[ ] Create the /stats command
+[ x ] Create the /stats command
 
-
-[//]: # (# 🎬 MovieBot – Your Smart Movie Assistant)
-
-[//]: # (MovieBot helps users discover, request, and manage movies through a clean chat interface &#40;like Telegram or web&#41;. It's built for simplicity, smart search, and scalable user interaction.)
+[//]: # "# 🎬 MovieBot – Your Smart Movie Assistant"
+[//]: # "MovieBot helps users discover, request, and manage movies through a clean chat interface (like Telegram or web). It's built for simplicity, smart search, and scalable user interaction."
 
 ---
 
 ## 🔍 Commands & Features
 
 ### `/search <title>`
+
 Search for movies by title.  
 **Example:**  
 `/search inception` → returns matching movies with **title**, **year**, and **genre**.
@@ -30,6 +29,7 @@ Search for movies by title.
 ---
 
 ### 🆕 `/latest`
+
 View the most recently uploaded movies.
 
 - Supports **pagination** via inline buttons: `Next`, `Previous`.
@@ -37,6 +37,7 @@ View the most recently uploaded movies.
 ---
 
 ### 🗂 `/genres`
+
 Displays all available genres as buttons (e.g., `Action`, `Sci-Fi`, `Drama`).
 
 - Clicking a genre shows matching movie results.
@@ -44,11 +45,13 @@ Displays all available genres as buttons (e.g., `Action`, `Sci-Fi`, `Drama`).
 ---
 
 ### 🔖 `/random`
+
 Returns a **random movie** from the database — perfect when you can't decide what to watch.
 
 ---
 
 ### 📁 `/requests`
+
 Browse recent movie requests made by users.
 
 - Great for tracking what's in demand.
@@ -57,6 +60,7 @@ Browse recent movie requests made by users.
 ---
 
 ### ⚙️ `/settings`
+
 User preferences panel:
 
 - Toggle new upload notifications
@@ -66,11 +70,13 @@ User preferences panel:
 ---
 
 ### 📆 `/history`
+
 Returns a list of movies the user has downloaded or interacted with (if history is tracked).
 
 ---
 
 ### ❓ `/help`
+
 Opens a helpful FAQ menu with common questions:
 
 - How to request a movie?
@@ -81,6 +87,7 @@ Opens a helpful FAQ menu with common questions:
 ---
 
 ### 🧾 `/status`
+
 Shows current subscription/account info:
 
 - Subscription status
@@ -90,6 +97,7 @@ Shows current subscription/account info:
 ---
 
 ### 💰 `/pay`
+
 Starts the subscription or payment process.
 
 - Can be linked to `/subscribe`
@@ -98,6 +106,7 @@ Starts the subscription or payment process.
 ---
 
 ### 📬 `/contact`
+
 Returns support contact info:
 
 - Email

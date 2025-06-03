@@ -34,7 +34,7 @@ const knownCommands = [
   "/test",
   "/latest",
   "/packages",
-  "/stats"
+  "/stats",
 ];
 
 export const handleMessage = async (msg) => {
