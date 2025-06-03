@@ -206,8 +206,10 @@ export const subscribe = async (msg) => {
     );
   }
 
-  const loadedSubscriptions = await loadSubscriptions()
-  const subscriptionPending = loadedSubscriptions.some((sub) => sub.status === 'pending') && loadedSubscriptions.some((sub) => sub.userId === chatId);
+  const loadedSubscriptions = await loadSubscriptions();
+  const subscriptionPending =
+    loadedSubscriptions.some((sub) => sub.status === "pending") &&
+    loadedSubscriptions.some((sub) => sub.userId === chatId);
   if (subscriptionPending) {
     return bot.sendMessage(
       chatId,
@@ -216,23 +218,20 @@ export const subscribe = async (msg) => {
     );
   }
 
-
-  bot.sendMessage(chatId, `*Ready to get VIP access?*\n\nSelect your subscription package below:`, {
-    parse_mode: "Markdown",
-    reply_markup: {
-      inline_keyboard: [
-        [
-          { text: " Once – 10", callback_data: "subscribe_once" }
+  bot.sendMessage(
+    chatId,
+    `*Ready to get VIP access?*\n\nSelect your subscription package below:`,
+    {
+      parse_mode: "Markdown",
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: " Once – 10", callback_data: "subscribe_once" }],
+          [{ text: " Weekly – 100", callback_data: "subscribe_weekly" }],
+          [{ text: " Monthly – 250", callback_data: "subscribe_monthly" }],
         ],
-        [
-          { text: " Weekly – 100", callback_data: "subscribe_weekly" }
-        ],
-        [
-          { text: " Monthly – 250", callback_data: "subscribe_monthly" }
-        ]
-      ]
-    }
-  });
+      },
+    },
+  );
 
   userStates[chatId] = "awaiting_subscription_input";
 };
@@ -351,8 +350,7 @@ export const status = async (msg) => {
     );
   }
 
-
-  const formattedPkgName = pkg[0].toUpperCase() + pkg.slice(1)
+  const formattedPkgName = pkg[0].toUpperCase() + pkg.slice(1);
 
   if (status === "active") {
     return bot.sendMessage(
@@ -378,7 +376,7 @@ export const status = async (msg) => {
 };
 
 export const latest = async (msg) => {
-  const chatId = msg.chat.id
+  const chatId = msg.chat.id;
 
   const movies = await loadMovies();
 
@@ -406,14 +404,48 @@ export const latest = async (msg) => {
     const message = chunk
       .map(
         (m) =>
-          `🎬 *${m.title}* (${m.year}) — _${m.genre}_ | 📺 ${m.resolution || "N/A"}`
+          `🎬 *${m.title}* (${m.year}) — _${m.genre}_ | 📺 ${m.resolution || "N/A"}`,
       )
       .join("\n");
 
     await bot.sendMessage(chatId, message, { parse_mode: "Markdown" });
   }
+};
 
-}
+export const stats = async (msg) => {
+  const chatId = msg.chat.id;
+
+  // const allUsers = await getAllUsers(); // array of user IDs
+  const allMovies = await loadMovies(); // array of movie objects
+  const allSubs = await loadSubscriptions(); // array of sub objects
+
+  const activeSubs = allSubs.filter(sub => sub.status === "active");
+  const pendingSubs = allSubs.filter(sub => sub.status === "pending");
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Set to start of today
+
+  const todaysUploads = movies.filter((m) => {
+    const createdAt = new Date(m.createdAt);
+    createdAt.setHours(0, 0, 0, 0); // Normalize to midnight
+
+    return createdAt.getTime() === today.getTime();
+  });
+
+  const statsMsg = `
+📊 *Bot Stats:*
+
+👥 *Total Users:*  \n
+🎬 *Movies Uploaded:* ${allMovies.length} \n
+📥 *Pending Subscriptions:* ${pendingSubs.length} \n
+✅ *Active Subscriptions:* ${activeSubs.length} \n
+
+🗓️ *Today’s Uploads:* ${todaysUploads.length}
+  `;
+
+  bot.sendMessage(chatId, statsMsg, { parse_mode: "Markdown" });
+};
+
 
 export const test = (msg) => {
   const chatId = msg.chat.id;

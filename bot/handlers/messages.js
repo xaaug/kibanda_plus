@@ -4,7 +4,8 @@ import { loadMovies, getMovies, saveMovie } from "../movies.js";
 import {
   USER_ID,
   LOGGING_GROUP_ID,
-  SUBSCRIPTIONSCHANNEL_ID, REQUEST_GROUP_ID
+  SUBSCRIPTIONSCHANNEL_ID,
+  REQUEST_GROUP_ID,
 } from "../../config/env.js";
 import { addPendingPayment } from "./payments.js";
 import {
@@ -17,7 +18,7 @@ import { processRequestInput } from "./commands.js";
 
 const adminId = Number(USER_ID);
 const loggingGroupId = Number(LOGGING_GROUP_ID);
-const requestGroupId = Number(REQUEST_GROUP_ID)
+const requestGroupId = Number(REQUEST_GROUP_ID);
 
 const knownCommands = [
   "/start",
@@ -33,6 +34,7 @@ const knownCommands = [
   "/test",
   "/latest",
   "/packages",
+  "/stats"
 ];
 
 export const handleMessage = async (msg) => {
@@ -141,7 +143,9 @@ export const handleMessage = async (msg) => {
 
       // Check for duplicate code
       const loadedSubscriptions = await loadSubscriptions();
-      const isDuplicate = loadedSubscriptions.some((sub) => sub.code === paymentCode);
+      const isDuplicate = loadedSubscriptions.some(
+        (sub) => sub.code === paymentCode,
+      );
       if (isDuplicate) {
         return bot.sendMessage(
           chatId,
@@ -150,7 +154,9 @@ export const handleMessage = async (msg) => {
         );
       }
 
-      const subscriptionPending = loadedSubscriptions.some((sub) => sub.status === 'pending') && loadedSubscriptions.some((sub) => sub.userId === chatId);
+      const subscriptionPending =
+        loadedSubscriptions.some((sub) => sub.status === "pending") &&
+        loadedSubscriptions.some((sub) => sub.userId === chatId);
       if (subscriptionPending) {
         return bot.sendMessage(
           chatId,
@@ -248,14 +254,22 @@ export const handleMessage = async (msg) => {
         //   `No movies found matching "${text}". Try another name or /request it.`,
         // );
 
-        await bot.sendMessage(requestGroupId, `🎬 New movie request:\n*${text}*`, {
-          parse_mode: "Markdown",
-        });
+        await bot.sendMessage(
+          requestGroupId,
+          `🎬 New movie request:\n*${text}*`,
+          {
+            parse_mode: "Markdown",
+          },
+        );
 
         // Notify user
-        await bot.sendMessage(chatId, `🔍 We don’t have "*${text}*" yet, but we are looking for it!`, {
-          parse_mode: "Markdown",
-        });
+        await bot.sendMessage(
+          chatId,
+          `🔍 We don’t have "*${text}*" yet, but we are looking for it!`,
+          {
+            parse_mode: "Markdown",
+          },
+        );
 
         return;
       }
@@ -389,7 +403,9 @@ export const handleMessage = async (msg) => {
         rawMeta = msg.caption;
       }
 
-      console.log(`[🎬 Media detected] file_id: ${file_id} | rawMeta: ${rawMeta}`);
+      console.log(
+        `[🎬 Media detected] file_id: ${file_id} | rawMeta: ${rawMeta}`,
+      );
 
       const parts = rawMeta.split("-");
       if (parts.length === 4) {
@@ -409,7 +425,7 @@ export const handleMessage = async (msg) => {
           bot.sendMessage(
             chatId,
             `✅ Movie saved:\n*${title}* (${year}) — _${genre}_ — Resolution: *${resolution}*`,
-            { parse_mode: "Markdown" }
+            { parse_mode: "Markdown" },
           );
         } else {
           bot.sendMessage(chatId, `⚠️ This movie already exists.`);
@@ -423,7 +439,6 @@ export const handleMessage = async (msg) => {
     }
   }
 
-
   // If none of the above matched, send fallback message
-    // bot.sendMessage(chatId, 'You’re breaking the matrix. Try /help to get back on track.');
-  }
+  // bot.sendMessage(chatId, 'You’re breaking the matrix. Try /help to get back on track.');
+};

@@ -8,6 +8,7 @@ export const handleCallbackQuery = async (callbackQuery) => {
   const msg = callbackQuery.message;
   const chatId = msg.chat.id;
   const data = callbackQuery.data;
+  const userId = msg.from.id;
 
   if (data === "search_movie") {
     await loadSubscriptions(); // Ensure latest data from disk
@@ -51,32 +52,34 @@ export const handleCallbackQuery = async (callbackQuery) => {
       })
       .toArray();
 
-    console.log('Searched Movie', searchedMovie)
-
+    console.log("Searched Movie", searchedMovie);
 
     // Update status to active
-    await db
-      .collection("movies")
-      .updateMany(
-        { title: movie.title },
-        {
-          $inc: { popularity: 1 },
-        }
-      );
-
+    await db.collection("movies").updateMany(
+      { title: movie.title },
+      {
+        $inc: { popularity: 1 },
+      },
+    );
 
     bot.sendVideo(chatId, movie.file_id);
-
-
 
     delete searchResults[chatId]; // optional: clean up memory
   }
 
   // Handle package selection
   if (!data.startsWith("subscribe_")) return;
+  const status = await isSubscribed(chatId);
+  console.log(status);
+
+  if (status) {
+    return bot.sendMessage(
+      chatId,
+      "⚠️ You already have an active subscription. No need to pay again.",
+    );
+  }
 
   const selectedPackage = data.split("_")[1];
-
 
   const instructions = `
 *Great! You selected the* _${selectedPackage}_ *package.*
@@ -91,7 +94,7 @@ export const handleCallbackQuery = async (callbackQuery) => {
 We'll verify and activate your subscription shortly. ✅`;
 
   bot.sendMessage(chatId, instructions, {
-    parse_mode: "Markdown"
+    parse_mode: "Markdown",
   });
 
   userStates[chatId] = "awaiting_subscription_input";

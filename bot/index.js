@@ -31,6 +31,7 @@ bot.onText(/\/subscribe/, commands.subscribe);
 bot.onText(/\/packages/, commands.packages);
 bot.onText(/\/status/, commands.status);
 bot.onText(/\/latest/, commands.latest);
+bot.onText(/\/stats/, commands.stats);
 
 // Admin Commands
 bot.onText(/\/approve @?(\w+)/, commands.approve);
