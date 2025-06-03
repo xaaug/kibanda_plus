@@ -110,13 +110,13 @@ export const deactivateExpiredSubscriptions = async () => {
 
 
 
-  if (updates.length > 0) {
+  if (idsToDelete.length > 0) {
     await db
       .collection("subscriptions")
-      .updateMany({ _id: { $in: updates } }, { $set: { status: "expired" } });
+      .updateMany({ _id: { $in: idsToDelete } }, { $set: { status: "expired" } });
 
     console.log(
-      `⏳ ${updates.length} subscriptions expired and were deactivated.`,
+      `⏳ ${idsToDelete.length} subscriptions expired and were deactivated.`,
     );
   } else {
     console.log("✅ No expired subscriptions to deactivate.");

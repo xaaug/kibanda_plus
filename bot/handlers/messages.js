@@ -35,7 +35,6 @@ const knownCommands = [
 
 export const handleMessage = async (msg) => {
   const chatId = msg.chat.id;
-  console.log(chatId)
   const text = msg.text;
   const sender = msg.from?.username || msg.from?.first_name || "Unknown";
 

@@ -2,6 +2,7 @@ import bot from "../botInstance.js";
 import { userStates, searchResults, newMovieStates } from "../states.js";
 import { saveMovie, loadMovies } from "../movies.js";
 import { isSubscribed, loadSubscriptions } from "./subscriptions.js";
+import { getDB } from "../../data/db.js";
 
 export const handleCallbackQuery = async (callbackQuery) => {
   const msg = callbackQuery.message;
@@ -39,7 +40,34 @@ export const handleCallbackQuery = async (callbackQuery) => {
     bot.sendMessage(chatId, `🎬 Delivering: *${movie.title}*`, {
       parse_mode: "Markdown",
     });
+
+    const db = await getDB();
+
+    // Find movie
+    const searchedMovie = await db
+      .collection("movies")
+      .find({
+        title: movie.title,
+      })
+      .toArray();
+
+    console.log('Searched Movie', searchedMovie)
+
+
+    // Update status to active
+    await db
+      .collection("movies")
+      .updateMany(
+        { title: movie.title },
+        {
+          $inc: { popularity: 1 },
+        }
+      );
+
+
     bot.sendVideo(chatId, movie.file_id);
+
+
 
     delete searchResults[chatId]; // optional: clean up memory
   }
