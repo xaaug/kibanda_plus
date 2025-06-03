@@ -387,6 +387,44 @@ export const status = async (msg) => {
   );
 };
 
+export const latest = async (msg) => {
+  const chatId = msg.chat.id
+
+  const movies = await loadMovies();
+
+  if (movies.length === 0) {
+    return bot.sendMessage(chatId, "No movies loaded currently.");
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Set to start of today
+
+  const todayMovies = movies.filter((m) => {
+    const createdAt = new Date(m.createdAt);
+    createdAt.setHours(0, 0, 0, 0); // Normalize to midnight
+
+    return createdAt.getTime() === today.getTime();
+  });
+
+  if (todayMovies.length === 0) {
+    return bot.sendMessage(chatId, "No movies posted today.");
+  }
+
+  const chunkSize = 20;
+  for (let i = 0; i < todayMovies.length; i += chunkSize) {
+    const chunk = todayMovies.slice(i, i + chunkSize);
+    const message = chunk
+      .map(
+        (m) =>
+          `🎬 *${m.title}* (${m.year}) — _${m.genre}_ | 📺 ${m.resolution || "N/A"}`
+      )
+      .join("\n");
+
+    await bot.sendMessage(chatId, message, { parse_mode: "Markdown" });
+  }
+
+}
+
 export const test = (msg) => {
   const chatId = msg.chat.id;
 

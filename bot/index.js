@@ -19,7 +19,7 @@ setInterval(
   10 * 60 * 1000,
 ); // every 1 hour 60 * 60 * 1000
 
-// Register command handlers
+// Command handlers
 bot.onText(/\/start/, commands.start);
 bot.onText(/\/help/, commands.help);
 bot.onText(/\/search/, commands.search);
@@ -30,6 +30,9 @@ bot.onText(/\/movies/, commands.moviesList);
 bot.onText(/\/subscribe/, commands.subscribe);
 bot.onText(/\/packages/, commands.packages);
 bot.onText(/\/status/, commands.status);
+bot.onText(/\/latest/, commands.latest);
+
+// Admin Commands
 bot.onText(/\/approve @?(\w+)/, commands.approve);
 bot.onText(/\/test/, commands.test);
 

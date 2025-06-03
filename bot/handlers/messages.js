@@ -30,6 +30,7 @@ const knownCommands = [
   "/adminhelp",
   "/approve",
   "/test",
+  "/latest",
   "/packages",
 ];
 

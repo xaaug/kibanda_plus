@@ -6,5 +6,5 @@
 [ ] Automatically send an unavailable movie to the requests channel  
 [ x ] On subscription end, delete user data from the subscriptions db  
 [ ] Bulk upload of movies   
-[ ] /latest command for latest movies  
+[ x ] /latest command for latest movies - posted current date  
 [ x ] Ensure that the popularity property of a movie increases after its delivered
