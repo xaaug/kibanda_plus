@@ -13,3 +13,6 @@ export const LOGGING_GROUP_ID = process.env.LOGGING_GROUP_ID;
 export const SUBSCRIPTIONSCHANNEL_ID = process.env.SUBSCRIPTIONSCHANNEL_ID;
 export const MONGODB_URI = process.env.MONGODB_URI;
 export const REQUEST_GROUP_ID = process.env.REQUEST_GROUP_ID;
+export const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
+export const PORT = process.env.PORT || 3000;
+export  const RENDER_EXTERNAL_URL = process.env.RENDER_EXTERNAL_URL;
