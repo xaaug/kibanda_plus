@@ -3,7 +3,7 @@ import { MongoClient } from "mongodb";
 import dotenv from "dotenv";
 import { MONGODB_URI } from "../config/env.js";
 
-dotenv.config(); // Load variables from .env
+dotenv.config(); // Load variables from .env.prod
 
 // const uri = "mongodb+srv://user1:user1234@cluster0.8j17ibf.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 const uri = MONGODB_URI;

@@ -1,7 +1,9 @@
 
 import TelegramBot from "node-telegram-bot-api";
-import { BOT_TOKEN } from "../config/env.js";
+import { BOT_TOKEN, USE_POLLING } from "../config/env.js";
 
-const bot = new TelegramBot(BOT_TOKEN); // No polling!
+const usePolling = USE_POLLING === "true";
+
+const bot = new TelegramBot(BOT_TOKEN, {polling: usePolling }); // No polling!
 
 export default bot;

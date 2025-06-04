@@ -12,7 +12,7 @@
 [ ] Show limited movies and add next button - /search command  
 [ ] Accept/Deny Requests
 [ x ] Create the /stats command
-[ ] Store the requests in the db
+[ ] Store the movie requests in the db
 
 [//]: # "# 🎬 MovieBot – Your Smart Movie Assistant"
 [//]: # "MovieBot helps users discover, request, and manage movies through a clean chat interface (like Telegram or web). It's built for simplicity, smart search, and scalable user interaction."
