@@ -52,7 +52,6 @@ export const handleCallbackQuery = async (callbackQuery) => {
       })
       .toArray();
 
-    console.log("Searched Movie", searchedMovie);
 
     // Update status to active
     await db.collection("movies").updateMany(
