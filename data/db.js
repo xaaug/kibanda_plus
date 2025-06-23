@@ -11,8 +11,11 @@ const uri = MONGODB_URI;
 if (!uri) {
   throw new Error("❌ MONGODB_URI not found in environment variables");
 }
+const client = new MongoClient(uri, {
+  tls: true,
+  serverApi: { version: '1' },
+});
 
-const client = new MongoClient(uri); // No options needed
 let db;
 
 export async function getDB() {
@@ -20,6 +23,16 @@ export async function getDB() {
     await client.connect();
     db = client.db(); // Uses DB name from connection string
     console.log("✅ MongoDB connected");
+  }
+  try {
+    const subscriptions = await db
+      .collection("subscriptions")
+      .find({})
+      .toArray();
+    console.log("Loaded Subscriptions", subscriptions)
+  } catch (err) {
+    console.error("Failed to load subscriptions from DB:", err);
+    return [];
   }
   return db;
 }
